@@ -96,6 +96,21 @@ export async function getAyah(surah: number, ayah: number): Promise<AyahRow | nu
   return db.getFirstAsync<AyahRow>('SELECT * FROM ayahs WHERE surah = ? AND ayah = ?', surah, ayah);
 }
 
+export interface MentionRow {
+  surah: number;
+  ayah: number;
+  arabic: string;
+}
+
+export async function getAyahsMentioning(keyword: string, limit = 3): Promise<MentionRow[]> {
+  const db = await getDb();
+  return db.getAllAsync<MentionRow>(
+    'SELECT surah, ayah, arabic FROM ayahs WHERE arabic_norm LIKE ? ORDER BY surah, ayah LIMIT ?',
+    `%${keyword}%`,
+    limit,
+  );
+}
+
 export async function getByJuz(juz: number): Promise<AyahRow[]> {
   const db = await getDb();
   return db.getAllAsync<AyahRow>('SELECT * FROM ayahs WHERE juz = ? ORDER BY id', juz);

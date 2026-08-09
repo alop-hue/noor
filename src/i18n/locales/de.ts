@@ -200,7 +200,13 @@ const de: Translation = {
     names99Hint: 'Die schönen Namen Allahs mit Bedeutung',
     names99Search: 'Name oder Bedeutung suchen…',
     names99Meaning: 'Bedeutung',
+
+    verses: 'Verse, die diesen Namen nennen',
+
+    noVerses: 'Keine Verse gefunden',
     tasbihCount: '{n}',
+
+    editDhikr: 'Dhikr ändern',
     reset: 'Zurücksetzen',
     target: 'Ziel',
     haptic: 'Haptisches Feedback',

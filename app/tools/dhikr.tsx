@@ -39,11 +39,12 @@ export default function DhikrScreen() {
 
   const bump = (id: number, count: number) => {
     setCounts((c) => {
-      const next = { ...c, [id]: (c[id] ?? 0) + 1 };
-      if (next[id] >= count) delete next[id];
+      const next = { ...c, [id]: Math.min((c[id] ?? 0) + 1, count) };
       return next;
     });
   };
+
+  const resetAll = () => setCounts({});
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
@@ -52,7 +53,9 @@ export default function DhikrScreen() {
           <Ionicons name="chevron-back" size={24} color={colors.text} />
         </Pressable>
         <Text variant="subheading" font="uiBold">{t('tools.dhikr')}</Text>
-        <View style={{ width: 24 }} />
+        <Pressable onPress={resetAll} hitSlop={8}>
+          <Ionicons name="refresh" size={22} color={colors.textSecondary} />
+        </Pressable>
       </View>
 
       <View style={{ padding: space[4] }}>
@@ -73,7 +76,10 @@ export default function DhikrScreen() {
           renderItem={({ item }) => {
             const done = (counts[item.id] ?? 0) >= item.count;
             return (
-              <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.hairline }]}>
+              <Pressable
+                onPress={() => bump(item.id, item.count)}
+                style={({ pressed }) => [styles.card, { backgroundColor: colors.card, borderColor: colors.hairline }, pressed && { opacity: 0.85 }]}
+              >
                 <Text variant="body" font="arabicBold" style={{ color: colors.quranText, textAlign: 'right', lineHeight: 30 }}>
                   {item.arabic}
                 </Text>
@@ -93,6 +99,7 @@ export default function DhikrScreen() {
                   </Text>
                   <Pressable
                     onPress={() => bump(item.id, item.count)}
+                    hitSlop={6}
                     style={[styles.countBtn, { borderColor: done ? colors.success : colors.hairlineStrong, backgroundColor: done ? colors.primarySoft : colors.bgSunken }]}
                   >
                     <Text variant="bodySmall" font="uiBold" color={done ? 'primary' : 'secondary'}>
@@ -100,7 +107,7 @@ export default function DhikrScreen() {
                     </Text>
                   </Pressable>
                 </View>
-              </View>
+              </Pressable>
             );
           }}
         />

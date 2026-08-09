@@ -90,12 +90,14 @@ export default function SettingsScreen() {
         title={t('settings.wordByWord')}
         right={<Toggle value={wordByWord} onValueChange={setWordByWord} />}
       />
-      <ListRow
-        icon={<Ionicons name="language-outline" size={20} color={colors.primary} />}
-        title={t('quran.translations')}
-        subtitle={showTranslation ? t('quran.translationOn') : t('quran.translationsOff')}
-        right={<Toggle value={showTranslation} onValueChange={setShowTranslation} />}
-      />
+      {language !== null && !language.startsWith('ar') && (
+        <ListRow
+          icon={<Ionicons name="language-outline" size={20} color={colors.primary} />}
+          title={t('quran.translations')}
+          subtitle={showTranslation ? t('quran.translationOn') : t('quran.translationsOff')}
+          right={<Toggle value={showTranslation} onValueChange={setShowTranslation} />}
+        />
+      )}
     </ScrollView>
   );
 }

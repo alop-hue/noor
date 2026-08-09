@@ -75,6 +75,7 @@ interface SettingsState {
   audio: PlayerSettings;
   downloads: Record<string, number>;
   tasbihTarget: number;
+  tasbihDhikr: string;
   lastRead: LastRead | null;
   onBoarded: boolean;
   setTheme: (t: ThemePreference) => void;
@@ -89,6 +90,7 @@ interface SettingsState {
   setDownloadProgress: (surah: number, pct: number | null) => void;
   clearDownloads: () => void;
   setTasbihTarget: (n: number) => void;
+  setTasbihDhikr: (s: string) => void;
   setLastRead: (surah: number, ayah: number) => void;
   setOnBoarded: (v: boolean) => void;
   reset: () => void;
@@ -116,6 +118,7 @@ export const useSettings = create<SettingsState>()(
       audio: { reciterId: 'mishary_alafasy', speed: 1, repeat: 'off', gapless: true, memorizeRepeat: 3 },
       downloads: {},
       tasbihTarget: 33,
+      tasbihDhikr: 'سُبْحَانَ الله',
       lastRead: null,
       onBoarded: false,
       setTheme: (theme) => set({ theme }),
@@ -144,6 +147,7 @@ export const useSettings = create<SettingsState>()(
         }),
       clearDownloads: () => set({ downloads: {} }),
       setTasbihTarget: (tasbihTarget) => set({ tasbihTarget }),
+      setTasbihDhikr: (tasbihDhikr) => set({ tasbihDhikr }),
       setLastRead: (surah, ayah) => set({ lastRead: { surah, ayah, timestamp: Date.now() } }),
       setOnBoarded: (onBoarded) => set({ onBoarded }),
       reset: () => set({}),

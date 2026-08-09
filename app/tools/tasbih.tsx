@@ -1,12 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 
-import { Text } from '@/components/ui';
+import { Button, Text } from '@/components/ui';
+import { ResizableSheet } from '@/components/ui/Sheet';
 import { useSettings } from '@/store/settings';
 import { useTheme } from '@/theme/ThemeContext';
 import { radius, space } from '@/theme/tokens';
@@ -16,9 +17,10 @@ export default function TasbihScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { tasbihTarget, setTasbihTarget } = useSettings();
+  const { tasbihTarget, setTasbihTarget, tasbihDhikr, setTasbihDhikr } = useSettings();
   const [count, setCount] = useState(0);
-  const [resetTick, setResetTick] = useState(0);
+  const [editOpen, setEditOpen] = useState(false);
+  const [draft, setDraft] = useState('');
   const debounce = useRef(false);
 
   const tap = () => {
@@ -39,7 +41,6 @@ export default function TasbihScreen() {
   const reset = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setCount(0);
-    setResetTick((x) => x + 1);
   };
 
   const progress = Math.min(1, count / tasbihTarget);
@@ -65,7 +66,13 @@ export default function TasbihScreen() {
         </Text>
 
         <Pressable onPress={tap} style={({ pressed }) => [styles.ring, { borderColor: colors.primary, borderWidth: 2, backgroundColor: colors.primarySoft }, pressed && { transform: [{ scale: 0.96 }] }]}>
-          <Text variant="subheading" font="uiBold" color="primary">سُبْحَانَ الله</Text>
+          <Text variant="subheading" font="arabicBold" color="primary">{tasbihDhikr}</Text>
+        </Pressable>
+
+        <Pressable onPress={() => { setDraft(tasbihDhikr); setEditOpen(true); }} hitSlop={8} style={{ marginTop: space[2] }}>
+          <Text variant="caption" color="tertiary">
+            {t('tasbih.editDhikr')} <Ionicons name="pencil" size={12} color={colors.textTertiary} />
+          </Text>
         </Pressable>
 
         <View style={[styles.track, { backgroundColor: colors.bgSunken, borderColor: colors.hairline }]}>
@@ -73,12 +80,12 @@ export default function TasbihScreen() {
         </View>
 
         <View style={styles.targets}>
-          {[33, 99, 100].map((n) => (
+          {[33, 50, 100].map((n) => (
             <Pressable
               key={n}
               onPress={() => {
                 setTasbihTarget(n);
-                setResetTick((x) => x + 1);
+                setCount(0);
               }}
               style={[styles.targetChip, { borderColor: n === tasbihTarget ? colors.primary : colors.hairline, backgroundColor: n === tasbihTarget ? colors.primarySoft : colors.card }]}
             >
@@ -92,6 +99,30 @@ export default function TasbihScreen() {
           <Ionicons name="refresh" size={20} color={colors.textOnEmphasis} />
         </Pressable>
       </View>
+
+      <ResizableSheet visible={editOpen} onClose={() => setEditOpen(false)}>
+        <View style={{ paddingHorizontal: space[5], paddingBottom: insets.bottom + space[4] }}>
+          <Text variant="subheading" font="uiBold" style={{ textAlign: 'center', marginBottom: space[4] }}>
+            {t('tasbih.editDhikr')}
+          </Text>
+          <TextInput
+            value={draft}
+            onChangeText={setDraft}
+            placeholder="سُبْحَانَ الله"
+            placeholderTextColor={colors.placeholder}
+            style={[styles.input, { color: colors.text, borderColor: colors.hairline, backgroundColor: colors.card }]}
+          />
+          <Button
+            title={t('common.save')}
+            disabled={!draft.trim()}
+            style={{ marginTop: space[3] }}
+            onPress={() => {
+              setTasbihDhikr(draft.trim());
+              setEditOpen(false);
+            }}
+          />
+        </View>
+      </ResizableSheet>
     </View>
   );
 }
@@ -130,4 +161,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  input: { borderWidth: 1, borderRadius: radius.md, padding: space[3] },
 });

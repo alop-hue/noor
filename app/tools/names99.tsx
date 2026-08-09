@@ -1,12 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { Clipboard, FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Clipboard, FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
 import { Text } from '@/components/ui';
+import { ResizableSheet } from '@/components/ui/Sheet';
 import names from '@/assets/data/asmaul-husna.json';
+import { getAyahsMentioning, type MentionRow } from '@/db/queries';
+import { arabicSurahName } from '@/features/quran/surahNames';
 import { useTheme } from '@/theme/ThemeContext';
 import { radius, space } from '@/theme/tokens';
 
@@ -16,6 +19,7 @@ interface NameEntry {
   tr: string;
   en: string;
   arMeaning: string;
+  kw: string;
 }
 
 const ALL_NAMES = names as NameEntry[];
@@ -26,6 +30,9 @@ export default function Names99Screen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
+  const [detail, setDetail] = useState<NameEntry | null>(null);
+  const [verses, setVerses] = useState<MentionRow[] | null>(null);
+  const [loadingVerses, setLoadingVerses] = useState(false);
 
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -39,9 +46,24 @@ export default function Names99Screen() {
     );
   }, [query]);
 
-  const copyName = (n: NameEntry) => {
-    void Clipboard.setString(`${n.ar} (${n.tr})`);
-  };
+  useEffect(() => {
+    if (!detail) {
+      setVerses(null);
+      return;
+    }
+    let cancelled = false;
+    setLoadingVerses(true);
+    getAyahsMentioning(detail.kw, 3).then((rows) => {
+      if (cancelled) return;
+      setVerses(rows);
+      setLoadingVerses(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [detail]);
+
+  const openDetail = (n: NameEntry) => setDetail(n);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
@@ -72,11 +94,10 @@ export default function Names99Screen() {
       <FlatList showsVerticalScrollIndicator={false}
         data={list}
         keyExtractor={(n) => String(n.n)}
-       
         contentContainerStyle={{ paddingBottom: insets.bottom + space[8] }}
         renderItem={({ item }) => (
           <Pressable
-            onPress={() => copyName(item)}
+            onPress={() => openDetail(item)}
             style={({ pressed }) => [styles.row, { borderBottomColor: colors.hairline }, pressed && { backgroundColor: colors.bgSunken }]}
           >
             <View style={[styles.num, { backgroundColor: colors.primarySoft }]}>
@@ -91,7 +112,7 @@ export default function Names99Screen() {
                 {i18n.language === 'ar' ? item.arMeaning : item.en}
               </Text>
             </View>
-            <Ionicons name="copy-outline" size={16} color={colors.textTertiary} />
+            <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
           </Pressable>
         )}
         ListEmptyComponent={
@@ -100,6 +121,64 @@ export default function Names99Screen() {
           </Text>
         }
       />
+
+      <ResizableSheet visible={detail !== null} onClose={() => setDetail(null)}>
+        {detail && (
+          <View style={{ paddingHorizontal: space[5], paddingBottom: insets.bottom + space[4] }}>
+            <View style={{ alignItems: 'center', marginBottom: space[3] }}>
+              <Text variant="caption" font="uiBold" color="tertiary" style={styles.section}>
+                {t('tools.names99Meaning')}
+              </Text>
+              <Text variant="display" font="arabicBold" style={{ fontSize: 44, lineHeight: 64, marginTop: space[1] }}>
+                {detail.ar}
+              </Text>
+              <Text variant="body" font="uiBold" color="primary" style={{ marginTop: 2 }}>{detail.tr}</Text>
+            </View>
+            <View style={[styles.meaningBox, { backgroundColor: colors.bgSunken, borderColor: colors.hairline }]}>
+              <Text variant="bodySmall" font="arabicBold" style={{ color: colors.quranText, textAlign: 'center', lineHeight: 26 }}>
+                {detail.arMeaning}
+              </Text>
+              {i18n.language !== 'ar' ? (
+                <Text variant="bodySmall" color="secondary" style={{ textAlign: 'center', marginTop: space[1] }}>
+                  {detail.en}
+                </Text>
+              ) : null}
+            </View>
+
+            <Text variant="caption" font="uiBold" color="tertiary" style={styles.section}>
+              {t('names99.verses')}
+            </Text>
+            {loadingVerses ? (
+              <ActivityIndicator color={colors.primary} style={{ marginVertical: space[4] }} />
+            ) : verses && verses.length > 0 ? (
+              verses.map((v) => (
+                <Pressable
+                  key={`${v.surah}-${v.ayah}`}
+                  onPress={() => void Clipboard.setString(v.arabic)}
+                  style={({ pressed }) => [styles.ayahBox, { backgroundColor: colors.card, borderColor: colors.hairline }, pressed && { opacity: 0.8 }]}
+                >
+                  <Text variant="body" font="quranBold" style={{ color: colors.quranText, textAlign: 'right', lineHeight: 30 }}>
+                    {v.arabic}
+                  </Text>
+                  <Text variant="caption" color="secondary" style={{ marginTop: space[2] }}>
+                    {arabicSurahName(v.surah)} · {t('quran.verseNumber')} {v.ayah}
+                  </Text>
+                </Pressable>
+              ))
+            ) : (
+              <Text variant="bodySmall" color="tertiary">{t('names99.noVerses')}</Text>
+            )}
+
+            <Pressable
+              onPress={() => void Clipboard.setString(`${detail.ar} (${detail.tr})`)}
+              style={[styles.copyBtn, { borderColor: colors.hairline, backgroundColor: colors.bgSunken }]}
+            >
+              <Ionicons name="copy-outline" size={16} color={colors.primary} />
+              <Text variant="bodySmall" font="uiBold" color="primary">{t('common.copy')}</Text>
+            </Pressable>
+          </View>
+        )}
+      </ResizableSheet>
     </View>
   );
 }
@@ -118,4 +197,8 @@ const styles = StyleSheet.create({
   input: { flex: 1, fontSize: 15, padding: 0 },
   row: { flexDirection: 'row', alignItems: 'center', gap: space[3], paddingVertical: space[3], paddingHorizontal: space[4], borderBottomWidth: StyleSheet.hairlineWidth * 2 },
   num: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  section: { marginTop: space[4], marginBottom: space[2], textTransform: 'uppercase', letterSpacing: 1 },
+  meaningBox: { borderWidth: StyleSheet.hairlineWidth * 2, borderRadius: radius.md, padding: space[3] },
+  ayahBox: { borderWidth: StyleSheet.hairlineWidth * 2, borderRadius: radius.md, padding: space[3], marginBottom: space[2] },
+  copyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space[2], marginTop: space[4], paddingVertical: space[3], borderRadius: radius.md, borderWidth: 1 },
 });

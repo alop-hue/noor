@@ -20,7 +20,7 @@ import { getAyahs, getSurah, getSurahTranslations, getTafsir, type AyahRow, type
 import { getMemorizedSurah, getNote, isAyahBookmarked, isAyahMemorized, saveNote, toggleAyahBookmark, toggleAyahMemorized } from '@/db/userdb';
 import { colorizeWords, splitWords } from '@/features/quran/tajweed';
 import { arabicSurahName, surahDisplayName } from '@/features/quran/surahNames';
-import { playSurah, RECITERS, startMemorizeRange, stopMemorize, subscribeToPlayer, togglePlayPause, type PlayerStatus } from '@/services/audio';
+import { playSurah, playWord, RECITERS, startMemorizeRange, stopMemorize, subscribeToPlayer, togglePlayPause, type PlayerStatus } from '@/services/audio';
 import { useSettings } from '@/store/settings';
 import { useTheme } from '@/theme/ThemeContext';
 import { radius, space } from '@/theme/tokens';
@@ -58,11 +58,12 @@ export default function ReaderScreen() {
   const listRef = useRef<FlatList<LoadedVerse>>(null);
   const [sheetVerse, setSheetVerse] = useState<number | null>(null);
   const [memorizeMode, setMemorizeMode] = useState(params.memorize === '1');
+  const isArabic = i18n.language.startsWith('ar');
+  const isUrdu = i18n.language.startsWith('ur');
   const [memorized, setMemorized] = useState<Set<number>>(new Set());
   const [hidden, setHidden] = useState<Set<number>>(new Set());
   const [focusAyah, setFocusAyah] = useState(targetAyah ?? 1);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'mushaf' | 'list'>('mushaf');
 
   useEffect(() => {
     (async () => {
@@ -230,14 +231,6 @@ export default function ReaderScreen() {
         </View>
         <View style={styles.controlsWrap}>
           <View style={styles.controls}>
-            <Segmented
-              options={[
-                { value: 'mushaf', label: t('quran.mushaf') },
-                { value: 'list', label: t('quran.list') },
-              ]}
-              value={viewMode}
-              onChange={(v) => setViewMode(v as 'mushaf' | 'list')}
-            />
             <Pressable onPress={() => setSettingsOpen(true)} hitSlop={8} style={[styles.iconBtn, { backgroundColor: colors.primarySoft }]}>
               <Ionicons name="options-outline" size={18} color={colors.primary} />
             </Pressable>
@@ -250,10 +243,12 @@ export default function ReaderScreen() {
           <Text variant="subheading" font="uiBold" style={{ textAlign: 'center', marginBottom: space[3] }}>
             {t('quran.readerSettings')}
           </Text>
-          <View style={styles.settingRow}>
-            <Text variant="bodySmall" color="secondary">{t('quran.translations')}</Text>
-            <Toggle value={showTranslation} onValueChange={setShowTranslation} />
-          </View>
+          {!isArabic && (
+            <View style={styles.settingRow}>
+              <Text variant="bodySmall" color="secondary">{t('quran.translations')}</Text>
+              <Toggle value={showTranslation} onValueChange={setShowTranslation} />
+            </View>
+          )}
           <View style={[styles.settingRow, { borderBottomColor: colors.hairline }]}>
             <Text variant="bodySmall" color="secondary">{t('quran.tajweed')}</Text>
             <Toggle value={tajweed} onValueChange={setTajweed} />
@@ -286,7 +281,9 @@ export default function ReaderScreen() {
                 ]}
               >
                 <View style={{ flex: 1 }}>
-                  <Text variant="bodySmall" font="uiBold" color={activeRec ? 'primary' : 'text'}>{r.name}</Text>
+                  <Text variant="bodySmall" font="uiBold" color={activeRec ? 'primary' : 'text'}>
+                    {i18n.language.startsWith('ar') ? (r.ar ?? r.name) : r.name}
+                  </Text>
                   <Text variant="micro" color="tertiary">{r.style}</Text>
                 </View>
                 {activeRec ? <Ionicons name="checkmark-circle" size={20} color={colors.primary} /> : null}
@@ -296,103 +293,33 @@ export default function ReaderScreen() {
         </ScrollView>
       </ResizableSheet>
 
-      {viewMode === 'mushaf' ? (
-        <MushafReader
-          surahId={surahId}
-          surahName={i18n.language.startsWith('ar') ? (arabicSurahName(surahId) || surah.name) : surah.name}
-          verses={verses.map((v) => ({ ayah: v.ayah.ayah, arabic: v.ayah.arabic, sajda: v.ayah.sajda }))}
-          showBismillah={showBismillah}
-          activeAyah={activeAyah}
-          focusAyah={memorizeMode ? focusAyah : undefined}
-          memorizeMode={memorizeMode}
-          tajweed={tajweed}
-          onPressAyah={(ayah) => {
-            const v = verses.find((x) => x.ayah.ayah === ayah);
-            if (v) void openSheet(v);
-          }}
-          onPageChange={(ayah) => setLastRead(surahId, ayah)}
-          onNextSurah={() => surahId < 114 && router.replace(`/quran/${surahId + 1}`)}
-        />
-      ) : (
-      <FlatList showsVerticalScrollIndicator={false}
-        ref={listRef}
-        data={verses}
-        keyExtractor={(v) => String(v.ayah.ayah)}
-        initialNumToRender={14}
-        maxToRenderPerBatch={10}
-        windowSize={7}
-       
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={{ itemVisiblePercentThreshold: 60 }}
-        contentContainerStyle={{ paddingBottom: insets.bottom + space[10] }}
-        ListHeaderComponent={
-          showBismillah ? (
-            <View style={styles.bismillah}>
-              <Text variant="quran" font="quranBold" style={{ color: colors.quranText }}>
-                بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
-              </Text>
-            </View>
-          ) : null
-        }
-        renderItem={({ item, index }) => {
-          const isFocus = memorizeMode && focusAyah === item.ayah.ayah;
-          const isHidden = memorizeMode && hidden.has(item.ayah.ayah);
-          const isMem = memorizeMode && memorized.has(item.ayah.ayah);
-          return (
-            <Pressable
-              onPress={() => (memorizeMode ? toggleHiddenState(item.ayah.ayah) : openSheet(item))}
-              onLongPress={() => openSheet(item)}
-              style={({ pressed }) => [
-                styles.ayahBlock,
-                pressed && { backgroundColor: colors.bgSunken },
-                isFocus && { backgroundColor: colors.primarySoft, borderLeftWidth: 3, borderLeftColor: colors.primary },
-              ]}
-            >
-              <View style={styles.ayahText}>
-                {isHidden ? (
-                  <View style={[styles.hiddenPlaceholder, { borderColor: colors.hairlineStrong }]}>
-                    <Text variant="bodySmall" color="tertiary">{t('memorize.reveal')}</Text>
-                  </View>
-                ) : (
-                  <>
-                    {renderArabic(item)}
-                    <Pressable
-                      onPress={() => (memorizeMode ? toggleMemorizeState(item.ayah.ayah) : openSheet(item))}
-                      hitSlop={6}
-                    >
-                      <View style={[styles.ayahNum, { borderColor: isMem ? colors.primary : colors.hairlineStrong, backgroundColor: isMem ? colors.primarySoft : 'transparent' }]}>
-                        <Text variant="micro" font="uiBold" color={isMem ? 'primary' : 'text'}>
-                          {isMem ? <Ionicons name="checkmark" size={12} color={colors.primary} /> : item.ayah.ayah}
-                        </Text>
-                      </View>
-                    </Pressable>
-                  </>
-                )}
-              </View>
-              {item.ayah.sajda === 1 && (
-                <View style={styles.ayahMeta}>
-                  <View style={[styles.sajda, { backgroundColor: colors.accentSoft }]}>
-                    <Text variant="micro" font="uiBold" color="accent">۩ {t('quran.sajda')}</Text>
-                  </View>
-                </View>
-              )}
-              {showTranslation && item.translation ? (
-                <Text variant="bodySmall" color="secondary" style={styles.translation}>
-                  {item.translation}
-                </Text>
-              ) : null}
-              {index === verses.length - 1 && (
-                <Pressable onPress={() => surahId < 114 && router.replace(`/quran/${surahId + 1}`)} style={[styles.nextSurah, { borderColor: colors.hairline }]}>
-                  <Text variant="bodySmall" font="uiBold" color="primary">{t('quran.endOfSurah')}</Text>
-                  <Text variant="bodySmall" font="uiBold" color="primary">{t('quran.nextSurah')} →</Text>
-                </Pressable>
-              )}
-            </Pressable>
-          );
+      <MushafReader
+        surahId={surahId}
+        surahName={i18n.language.startsWith('ar') ? (arabicSurahName(surahId) || surah.name) : surah.name}
+        verses={verses.map((v) => ({ ayah: v.ayah.ayah, arabic: v.ayah.arabic, sajda: v.ayah.sajda }))}
+        showBismillah={showBismillah}
+        activeAyah={activeAyah}
+        focusAyah={memorizeMode ? focusAyah : undefined}
+        memorizeMode={memorizeMode}
+        tajweed={tajweed}
+        wordByWord={wordByWord}
+        isPlaying={playingThis}
+        onPressAyah={(ayah) => {
+          const v = verses.find((x) => x.ayah.ayah === ayah);
+          if (v) void openSheet(v);
         }}
-        onScrollToIndexFailed={({ index }) => listRef.current?.scrollToOffset({ offset: index * 90 })}
+        onPressWord={(ayah, word) => {
+          void playWord(surahId, ayah, word).then((ok) => {
+            if (!ok) void playSurah(surahId, ayah);
+          });
+        }}
+        onPlayPage={(firstAyah) => {
+          if (playingThis) togglePlayPause();
+          else void playSurah(surahId, firstAyah);
+        }}
+        onPageChange={(ayah) => setLastRead(surahId, ayah)}
+        onNextSurah={() => surahId < 114 && router.replace(`/quran/${surahId + 1}`)}
       />
-      )}
 
       {memorizeMode && (
         <View style={[styles.memorizeBar, { backgroundColor: colors.bgElevated, borderTopColor: colors.hairline, paddingBottom: insets.bottom }]}>
@@ -469,6 +396,8 @@ export default function ReaderScreen() {
         }}
         defaultTranslation={defaultTranslation}
         onChangeTranslation={(ed) => setDefaultTranslation(ed)}
+        isArabic={isArabic}
+        showTafsir={isArabic || isUrdu}
         t={t}
         colors={colors}
       />
@@ -477,7 +406,7 @@ export default function ReaderScreen() {
 }
 
 function VerseSheet({
-  visible, onClose, verse, surah, tafsir, tafsirTab, setTafsirTab, isBookmarked, onToggleBookmark, isMemorized, onToggleMemorize, note, setNote, onSaveNote, onCopy, onShare, onPlay, defaultTranslation, onChangeTranslation, t, colors,
+  visible, onClose, verse, surah, tafsir, tafsirTab, setTafsirTab, isBookmarked, onToggleBookmark, isMemorized, onToggleMemorize, note, setNote, onSaveNote, onCopy, onShare, onPlay, defaultTranslation, onChangeTranslation, isArabic, showTafsir, t, colors,
 }: {
   visible: boolean;
   onClose: () => void;
@@ -498,6 +427,8 @@ function VerseSheet({
   onPlay: () => void;
   defaultTranslation: string;
   onChangeTranslation: (ed: string) => void;
+  isArabic: boolean;
+  showTafsir: boolean;
   t: (k: string, o?: Record<string, unknown>) => string;
   colors: ReturnType<typeof useTheme>['colors'];
 }) {
@@ -505,7 +436,7 @@ function VerseSheet({
   useEffect(() => {
     setEditions(Object.keys(TRANSLATION_EDITIONS));
   }, []);
-  const tafsirRows = TAFSIR_SOURCES;
+  const tafsirRows = TAFSIR_SOURCES.filter((s) => (isArabic ? s.lang === 'ar' : s.lang === 'ur' || s.lang === 'en'));
   return (
     <ResizableSheet visible={visible} onClose={onClose}>
       {verse && (
@@ -514,47 +445,57 @@ function VerseSheet({
             <Text variant="quranCompact" font="quranBold" style={{ color: colors.quranText, textAlign: 'center' }}>
               {verse.ayah.arabic}
             </Text>
+            {!isArabic && (
               <Text variant="bodySmall" color="secondary" style={{ marginTop: space[3] }}>
                 {verse.translation}
               </Text>
+            )}
 
-              <Text variant="caption" font="uiBold" color="tertiary" style={styles.sheetSection}>
-                {t('quran.translations')}
-              </Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space[5] }} contentContainerStyle={{ paddingHorizontal: space[5], gap: space[2] }} >
-                {editions.map((ed) => (
-                  <Pressable
-                    key={ed}
-                    onPress={() => onChangeTranslation(ed)}
-                    style={[
-                      styles.editionChip,
-                      { borderColor: ed === defaultTranslation ? colors.primary : colors.hairline, backgroundColor: ed === defaultTranslation ? colors.primarySoft : colors.card },
-                    ]}
-                  >
-                    <Text variant="micro" font="uiBold" color={ed === defaultTranslation ? 'primary' : 'secondary'}>
-                      {TRANSLATION_EDITIONS[ed].label}
+            {!isArabic && (
+              <>
+                <Text variant="caption" font="uiBold" color="tertiary" style={styles.sheetSection}>
+                  {t('quran.translations')}
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space[5] }} contentContainerStyle={{ paddingHorizontal: space[5], gap: space[2] }} >
+                  {editions.map((ed) => (
+                    <Pressable
+                      key={ed}
+                      onPress={() => onChangeTranslation(ed)}
+                      style={[
+                        styles.editionChip,
+                        { borderColor: ed === defaultTranslation ? colors.primary : colors.hairline, backgroundColor: ed === defaultTranslation ? colors.primarySoft : colors.card },
+                      ]}
+                    >
+                      <Text variant="micro" font="uiBold" color={ed === defaultTranslation ? 'primary' : 'secondary'}>
+                        {TRANSLATION_EDITIONS[ed].label}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </>
+            )}
+
+            {showTafsir && (
+              <>
+                <Text variant="caption" font="uiBold" color="tertiary" style={styles.sheetSection}>
+                  {t('quran.tafsir')}
+                </Text>
+                <Segmented
+                  options={tafsirRows.map((s) => ({ value: s.id, label: s.label }))}
+                  value={tafsirTab}
+                  onChange={setTafsirTab}
+                />
+                <View style={{ marginTop: space[3] }}>
+                  {tafsir[tafsirTab] ? (
+                    <Text variant="bodySmall" color="secondary" style={{ lineHeight: 22 }}>
+                      {stripHtml(tafsir[tafsirTab]!.text)}
                     </Text>
-                  </Pressable>
-                ))}
-              </ScrollView>
-
-              <Text variant="caption" font="uiBold" color="tertiary" style={styles.sheetSection}>
-                {t('quran.tafsir')}
-              </Text>
-              <Segmented
-                options={tafsirRows.map((s) => ({ value: s.id, label: s.label }))}
-                value={tafsirTab}
-                onChange={setTafsirTab}
-              />
-              <View style={{ marginTop: space[3] }}>
-                {tafsir[tafsirTab] ? (
-                  <Text variant="bodySmall" color="secondary" style={{ lineHeight: 22 }}>
-                    {stripHtml(tafsir[tafsirTab]!.text)}
-                  </Text>
-                ) : (
-                  <Text variant="bodySmall" color="tertiary">{t('hadith.noResults')}</Text>
-                )}
-              </View>
+                  ) : (
+                    <Text variant="bodySmall" color="tertiary">{t('hadith.noResults')}</Text>
+                  )}
+                </View>
+              </>
+            )}
 
               <Text variant="caption" font="uiBold" color="tertiary" style={styles.sheetSection}>
                 {t('quran.notes')}

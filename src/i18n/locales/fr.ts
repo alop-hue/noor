@@ -200,7 +200,13 @@ const fr: Translation = {
     names99Hint: 'Les 99 noms d\u0027Allah avec leur sens',
     names99Search: 'Rechercher un nom ou un sens…',
     names99Meaning: 'Signification',
+
+    verses: 'Versets mentionnant ce nom',
+
+    noVerses: 'Aucun verset trouvé',
     tasbihCount: '{n}',
+
+    editDhikr: 'Changer le dhikr',
     reset: 'Réinitialiser',
     target: 'Objectif',
     haptic: 'Retour haptique',

@@ -8,6 +8,7 @@ import { useSettings } from '../store/settings';
 export interface Reciter {
   id: string;
   name: string;
+  ar?: string;
   style: string;
   server: string;
 }
@@ -133,6 +134,37 @@ export function togglePlayPause(): void {
   const p = getPlayer();
   if (lastStatus.playing) p.pause();
   else p.play();
+}
+
+function pad3(n: number): string {
+  return String(n).padStart(3, '0');
+}
+
+export function wordAudioUrl(surah: number, ayah: number, word: number): string {
+  return `https://audio.qurancdn.com/wbw/${pad3(surah)}_${pad3(ayah)}_${pad3(word)}.mp3`;
+}
+
+export async function playWord(surah: number, ayah: number, word: number): Promise<boolean> {
+  const url = wordAudioUrl(surah, ayah, word);
+  try {
+    const res = await fetch(url, { method: 'HEAD' });
+    if (!res.ok) return false;
+  } catch {
+    return false;
+  }
+  memorize = null;
+  currentSurah = surah;
+  await initAudioMode();
+  try {
+    const p = getPlayer();
+    p.replace({ uri: url });
+    p.setPlaybackRate(useSettings.getState().audio.speed);
+    p.play();
+    return true;
+  } catch (e) {
+    console.warn('playWord failed', e);
+    return false;
+  }
 }
 
 export async function seekTo(seconds: number): Promise<void> {

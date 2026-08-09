@@ -12,7 +12,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import { radius, space } from '@/theme/tokens';
 
 export default function DownloadsScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -79,7 +79,7 @@ export default function DownloadsScreen() {
                 },
               ]}
             >
-              <Text variant="micro" font="uiBold" color={activeReciter === item.id ? 'primary' : 'secondary'}>{item.name}</Text>
+              <Text variant="micro" font="uiBold" color={activeReciter === item.id ? 'primary' : 'secondary'}>{i18n.language.startsWith('ar') ? (item.ar ?? item.name) : item.name}</Text>
             </Pressable>
           )}
         />

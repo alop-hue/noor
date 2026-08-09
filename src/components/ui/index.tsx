@@ -204,6 +204,7 @@ const styles3 = StyleSheet.create({
     height: 26,
     borderRadius: 13,
     padding: 2,
+    direction: 'ltr',
   },
   thumb: {
     width: 20,

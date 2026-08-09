@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text as RNText,
   View,
@@ -33,7 +34,11 @@ interface Props {
   focusAyah?: number;
   memorizeMode?: boolean;
   tajweed: boolean;
+  wordByWord?: boolean;
+  isPlaying?: boolean;
   onPressAyah: (ayah: number) => void;
+  onPressWord?: (ayah: number, word: number) => void;
+  onPlayPage?: (firstAyah: number) => void;
   onPageChange: (ayah: number) => void;
   onNextSurah?: () => void;
 }
@@ -55,7 +60,11 @@ export function MushafReader({
   focusAyah,
   memorizeMode,
   tajweed,
+  wordByWord,
+  isPlaying,
   onPressAyah,
+  onPressWord,
+  onPlayPage,
   onPageChange,
   onNextSurah,
 }: Props) {
@@ -160,6 +169,27 @@ export function MushafReader({
         ﴿{toArabicDigits(v.ayah)}﴾
       </RNText>
     );
+    if (wordByWord && onPressWord) {
+      return (
+        <RNText
+          key={v.ayah}
+          style={[styles.ayahSpan, { backgroundColor: bg }]}
+          onPress={() => onPressAyah(v.ayah)}
+        >
+          {words.map((word, i) => (
+            <RNText
+              key={`w${i}`}
+              style={styles.wordTap}
+              onPress={() => onPressWord(v.ayah, i + 1)}
+            >
+              {word}{' '}
+            </RNText>
+          ))}
+          {v.sajda === 1 ? <RNText style={{ color: colors.accent }}> ۩ </RNText> : null}
+          {marker}
+        </RNText>
+      );
+    }
     if (spans) {
       return (
         <RNText
@@ -238,9 +268,9 @@ export function MushafReader({
                 <RNText style={styles.surahName}>{surahName}</RNText>
               ) : null}
             </View>
-            <View style={styles.pageBody}>
+            <ScrollView showsVerticalScrollIndicator={false} style={styles.pageBody} contentContainerStyle={{ paddingBottom: 70 }}>
               {item.verses.map(renderVerse)}
-            </View>
+            </ScrollView>
             {index === lastPage && onNextSurah ? (
               <Pressable
                 onPress={onNextSurah}
@@ -261,9 +291,20 @@ export function MushafReader({
         <Pressable onPress={() => scrollToPage(pageIndex - 1)} hitSlop={10} style={styles.footerBtn}>
           <Ionicons name={rtl ? 'chevron-forward' : 'chevron-back'} size={20} color={colors.textSecondary} />
         </Pressable>
-        <Text variant="caption" font="uiBold" color="secondary">
-          {toArabicDigits(pageIndex + 1)} / {toArabicDigits(pages.length)}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
+          <Text variant="caption" font="uiBold" color="secondary">
+            {toArabicDigits(pageIndex + 1)} / {toArabicDigits(pages.length)}
+          </Text>
+          {onPlayPage ? (
+            <Pressable
+              onPress={() => onPlayPage(pages[pageIndex].verses[0].ayah)}
+              hitSlop={10}
+              style={[styles.footerBtn, isPlaying && { backgroundColor: colors.primarySoft }]}
+            >
+              <Ionicons name={isPlaying ? 'pause' : 'play'} size={18} color={isPlaying ? colors.primary : colors.textSecondary} />
+            </Pressable>
+          ) : null}
+        </View>
         <Pressable onPress={() => scrollToPage(pageIndex + 1)} hitSlop={10} style={styles.footerBtn}>
           <Ionicons name={rtl ? 'chevron-back' : 'chevron-forward'} size={20} color={colors.textSecondary} />
         </Pressable>
@@ -289,6 +330,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 1,
   },
   marker: { fontSize: 22, lineHeight: LINE_HEIGHT, color: '#8B7355' },
+  wordTap: { borderBottomWidth: 1, borderBottomColor: 'rgba(139,115,85,0.45)', paddingHorizontal: 1 },
   footer: {
     position: 'absolute',
     left: 0,
@@ -302,7 +344,7 @@ const styles = StyleSheet.create({
   footerBtn: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(128,128,128,0.12)' },
   nextBtn: {
     position: 'absolute',
-    bottom: 8,
+    bottom: 58,
     alignSelf: 'center',
     paddingHorizontal: space[4],
     paddingVertical: space[2],

@@ -200,7 +200,13 @@ const id: Translation = {
     names99Hint: 'Nama-nama Allah beserta artinya',
     names99Search: 'Cari nama atau arti…',
     names99Meaning: 'Arti',
+
+    verses: 'Ayat yang menyebut nama ini',
+
+    noVerses: 'Tidak ada ayat',
     tasbihCount: '{n}',
+
+    editDhikr: 'Ubah zikir',
     reset: 'Reset',
     target: 'Target',
     haptic: 'Umpan balik getar',
