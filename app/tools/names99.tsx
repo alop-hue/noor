@@ -1,15 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Clipboard, FlatList, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Clipboard, FlatList, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
 import { Text } from '@/components/ui';
 import { ResizableSheet } from '@/components/ui/Sheet';
 import names from '@/assets/data/asmaul-husna.json';
-import { getAyahsMentioning, type MentionRow } from '@/db/queries';
-import { arabicSurahName } from '@/features/quran/surahNames';
 import { useTheme } from '@/theme/ThemeContext';
 import { radius, space } from '@/theme/tokens';
 
@@ -31,8 +29,6 @@ export default function Names99Screen() {
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
   const [detail, setDetail] = useState<NameEntry | null>(null);
-  const [verses, setVerses] = useState<MentionRow[] | null>(null);
-  const [loadingVerses, setLoadingVerses] = useState(false);
 
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -45,37 +41,6 @@ export default function Names99Screen() {
         n.arMeaning.includes(query.trim()),
     );
   }, [query]);
-
-  useEffect(() => {
-    if (!detail) {
-      setVerses(null);
-      return;
-    }
-    let cancelled = false;
-    setLoadingVerses(true);
-    (async () => {
-      const direct = await getAyahsMentioning(detail.kw, 3);
-      if (cancelled) return;
-      if (direct.length > 0) {
-        setVerses(direct);
-        setLoadingVerses(false);
-        return;
-      }
-      const words = detail.kw.split(' ').filter((w) => w.length >= 2);
-      for (const w of words) {
-        const rows = await getAyahsMentioning(w, 3);
-        if (cancelled) return;
-        if (rows.length > 0) {
-          setVerses(rows);
-          break;
-        }
-      }
-      setLoadingVerses(false);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [detail]);
 
   const openDetail = (n: NameEntry) => setDetail(n);
 
@@ -159,30 +124,6 @@ export default function Names99Screen() {
               ) : null}
             </View>
 
-            <Text variant="caption" font="uiBold" color="tertiary" style={styles.section}>
-              {t('names99.verses')}
-            </Text>
-            {loadingVerses ? (
-              <ActivityIndicator color={colors.primary} style={{ marginVertical: space[4] }} />
-            ) : verses && verses.length > 0 ? (
-              verses.map((v) => (
-                <Pressable
-                  key={`${v.surah}-${v.ayah}`}
-                  onPress={() => void Clipboard.setString(v.arabic)}
-                  style={({ pressed }) => [styles.ayahBox, { backgroundColor: colors.card, borderColor: colors.hairline }, pressed && { opacity: 0.8 }]}
-                >
-                  <Text variant="body" font="quranBold" style={{ color: colors.quranText, textAlign: 'right', lineHeight: 30 }}>
-                    {v.arabic}
-                  </Text>
-                  <Text variant="caption" color="secondary" style={{ marginTop: space[2] }}>
-                    {arabicSurahName(v.surah)} · {t('quran.verseNumber')} {v.ayah}
-                  </Text>
-                </Pressable>
-              ))
-            ) : (
-              <Text variant="bodySmall" color="tertiary">{t('names99.noVerses')}</Text>
-            )}
-
             <Pressable
               onPress={() => void Clipboard.setString(`${detail.ar} (${detail.tr})`)}
               style={[styles.copyBtn, { borderColor: colors.hairline, backgroundColor: colors.bgSunken }]}
@@ -213,6 +154,5 @@ const styles = StyleSheet.create({
   num: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   section: { marginTop: space[4], marginBottom: space[2], textTransform: 'uppercase', letterSpacing: 1 },
   meaningBox: { borderWidth: StyleSheet.hairlineWidth * 2, borderRadius: radius.md, padding: space[3] },
-  ayahBox: { borderWidth: StyleSheet.hairlineWidth * 2, borderRadius: radius.md, padding: space[3], marginBottom: space[2] },
   copyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space[2], marginTop: space[4], paddingVertical: space[3], borderRadius: radius.md, borderWidth: 1 },
 });

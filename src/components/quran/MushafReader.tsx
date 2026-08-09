@@ -38,6 +38,8 @@ interface Props {
   onPressAyah: (ayah: number) => void;
   onPressWord?: (ayah: number, word: number) => void;
   onLongPressAyah?: (ayah: number) => void;
+  hiddenAyahs?: Set<number>;
+  onToggleHidden?: (ayah: number) => void;
   onPageChange: (ayah: number) => void;
   onNextSurah?: () => void;
 }
@@ -73,6 +75,8 @@ export function MushafReader({
   onPressAyah,
   onPressWord,
   onLongPressAyah,
+  hiddenAyahs,
+  onToggleHidden,
   onPageChange,
   onNextSurah,
 }: Props) {
@@ -165,6 +169,7 @@ export function MushafReader({
   const renderVerse = (v: MushafVerse) => {
     const isActive = activeAyah === v.ayah;
     const isFocus = memorizeMode && focusAyah === v.ayah;
+    const isHidden = hiddenAyahs?.has(v.ayah) ?? false;
     const bg = isActive
       ? 'rgba(201,162,39,0.28)'
       : isFocus
@@ -193,16 +198,41 @@ export function MushafReader({
       onLongPress: onLongPressAyah ? () => onLongPressAyah(v.ayah) : undefined,
       delayLongPress: 400,
     };
+    if (isHidden && onToggleHidden) {
+      return (
+        <Pressable
+          key={`h${v.ayah}`}
+          onPress={() => onToggleHidden(v.ayah)}
+          style={({ pressed }) => [
+            styles.hiddenBox,
+            { borderColor: 'rgba(242,235,216,0.35)' },
+            pressed && { opacity: 0.7 },
+          ]}
+        >
+          <Text variant="caption" color="secondary">{t('quran.hiddenAyah')}</Text>
+          {marker}
+        </Pressable>
+      );
+    }
     if (wordByWord && onPressWord) {
+      const wordSpans = spans ?? words.map((w) => [{ text: w, color: 'default' as const }]);
       return (
         <RNText key={v.ayah} style={base} {...pressProps}>
-          {words.map((word, i) => (
+          {wordSpans.map((wordParts, i) => (
             <RNText
               key={`w${i}`}
               style={[styles.wordTap, { color: PAGE_TEXT }]}
               onPress={() => onPressWord(v.ayah, i + 1)}
             >
-              {word}{' '}
+              {wordParts.map((span, j) => (
+                <RNText
+                  key={j}
+                  style={{ color: span.color === 'default' ? PAGE_TEXT : TAJWEED[span.color] }}
+                >
+                  {span.text}
+                </RNText>
+              ))}
+              {' '}
             </RNText>
           ))}
           {v.sajda === 1 ? <RNText style={{ color: '#D4AF37' }}> ۩ </RNText> : null}
@@ -339,6 +369,19 @@ const styles = StyleSheet.create({
   },
   marker: { fontSize: 22, lineHeight: LINE_HEIGHT, color: '#B39B7D' },
   wordTap: { borderBottomWidth: 1, borderBottomColor: 'rgba(242,235,216,0.4)', paddingHorizontal: 1, color: PAGE_TEXT },
+  hiddenBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    direction: 'rtl',
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderRadius: 6,
+    paddingHorizontal: space[3],
+    paddingVertical: space[2],
+    marginBottom: 4,
+    minHeight: LINE_HEIGHT,
+  },
   footer: {
     position: 'absolute',
     left: 0,

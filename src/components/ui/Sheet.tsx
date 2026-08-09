@@ -2,8 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   Animated,
+  KeyboardAvoidingView,
   Modal,
   PanResponder,
+  Platform,
   Pressable,
   StyleSheet,
   View,
@@ -110,34 +112,43 @@ export function ResizableSheet({
   return (
     <Modal visible={visible || open} transparent animationType="none" onRequestClose={close}>
       <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={close} />
-      <Animated.View
-        style={[
-          styles.sheet,
-          { backgroundColor: colors.bgElevated, height: animH },
-        ]}
+      {/* RN Modals are NOT resized by the keyboard on Android; this keeps the
+          sheet (and any inputs/buttons inside it) above the keyboard. */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        pointerEvents="box-none"
+        style={styles.kav}
       >
-        <View style={styles.grabberZone} {...responder.panHandlers}>
-          <View style={[styles.grabber, { backgroundColor: 'rgba(128,128,128,0.45)' }]} />
-          <View style={styles.grabberIcons}>
-            <Pressable onPress={() => snap(SNAP_POINTS[0])} hitSlop={8} style={styles.iconBtn}>
-              <Ionicons name="chevron-down" size={16} color={colors.textSecondary} />
-            </Pressable>
-            <Pressable onPress={() => snap(MAX_H)} hitSlop={8} style={styles.iconBtn}>
-              <Ionicons name="chevron-up" size={16} color={colors.textSecondary} />
-            </Pressable>
-            <Pressable onPress={close} hitSlop={8} style={styles.iconBtn}>
-              <Ionicons name="close" size={16} color={colors.textSecondary} />
-            </Pressable>
+        <Animated.View
+          style={[
+            styles.sheet,
+            { backgroundColor: colors.bgElevated, height: animH },
+          ]}
+        >
+          <View style={styles.grabberZone} {...responder.panHandlers}>
+            <View style={[styles.grabber, { backgroundColor: 'rgba(128,128,128,0.45)' }]} />
+            <View style={styles.grabberIcons}>
+              <Pressable onPress={() => snap(SNAP_POINTS[0])} hitSlop={8} style={styles.iconBtn}>
+                <Ionicons name="chevron-down" size={16} color={colors.textSecondary} />
+              </Pressable>
+              <Pressable onPress={() => snap(MAX_H)} hitSlop={8} style={styles.iconBtn}>
+                <Ionicons name="chevron-up" size={16} color={colors.textSecondary} />
+              </Pressable>
+              <Pressable onPress={close} hitSlop={8} style={styles.iconBtn}>
+                <Ionicons name="close" size={16} color={colors.textSecondary} />
+              </Pressable>
+            </View>
           </View>
-        </View>
-        {children}
-      </Animated.View>
+          {children}
+        </Animated.View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
   scrim: { flex: 1 },
+  kav: { flex: 1 },
   sheet: {
     position: 'absolute',
     bottom: 0,

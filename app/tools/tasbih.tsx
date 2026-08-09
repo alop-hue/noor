@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
@@ -101,7 +101,11 @@ export default function TasbihScreen() {
       </View>
 
       <ResizableSheet visible={editOpen} onClose={() => setEditOpen(false)}>
-        <View style={{ paddingHorizontal: space[5], paddingBottom: insets.bottom + space[4] }}>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: space[5], paddingBottom: insets.bottom + space[6] }}
+        >
           <Text variant="subheading" font="uiBold" style={{ textAlign: 'center', marginBottom: space[4] }}>
             {t('tools.editDhikr')}
           </Text>
@@ -121,7 +125,7 @@ export default function TasbihScreen() {
               setEditOpen(false);
             }}
           />
-        </View>
+        </ScrollView>
       </ResizableSheet>
     </View>
   );

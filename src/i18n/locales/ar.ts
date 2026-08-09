@@ -81,6 +81,9 @@ const ar: Translation = {
     goto: 'اذهب إلى',
     endOfSurah: 'نهاية السورة',
     nextSurah: 'السورة التالية',
+    hiddenAyah: 'مخفية',
+    hideAyah: 'إخفاء الآية',
+    showAyah: 'إظهار الآية',
   },
 
   hadith: {

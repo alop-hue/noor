@@ -15,9 +15,17 @@ export interface Reciter {
 
 export const RECITERS: Reciter[] = reciters as Reciter[];
 
+const AYAH_SECONDS = 25;
+
 let player: AudioPlayer | null = null;
 let currentSurah: number | null = null;
 let playMode: 'surah' | 'word' | 'memorize' | null = null;
+/** The ayah where the current playback segment started. Used to compute the
+ *  real-time reading ayah and to implement verse-repeat. */
+let startAyah: number | null = null;
+let ayahTimer: ReturnType<typeof setInterval> | null = null;
+let lastAyahTick = 0;
+let memorizeAdvancing = false;
 let listeners = new Set<(status: PlayerStatus) => void>();
 let sleepTimerMs: number | null = null;
 let sleepTimerHandle: ReturnType<typeof setTimeout> | null = null;
@@ -29,6 +37,7 @@ let lastStatus: PlayerStatus = {
   didJustFinish: false,
   surah: null,
   memorize: null,
+  startAyah: null,
 };
 
 export interface PlayerStatus {
@@ -39,6 +48,7 @@ export interface PlayerStatus {
   didJustFinish: boolean;
   surah: number | null;
   memorize: MemorizeState | null;
+  startAyah?: number | null;
 }
 
 export interface MemorizeState {
@@ -64,6 +74,7 @@ function getPlayer(): AudioPlayer {
         didJustFinish: status.didJustFinish,
         surah: currentSurah,
         memorize,
+        startAyah,
       };
       if (status.didJustFinish) handleFinished();
       emit();
@@ -74,6 +85,45 @@ function getPlayer(): AudioPlayer {
 
 function emit() {
   for (const l of listeners) l(lastStatus);
+}
+
+/**
+ * Drives ayah boundaries for verse-repeat and memorize repeat. Surah files are
+ * played as one long track (there are no per-ayah timestamps), so a timer walks
+ * the approximate ayah cadence (~25s/ayah) and re-seeks when a repeat applies.
+ */
+function startAyahTimer() {
+  stopAyahTimer();
+  lastAyahTick = 0;
+  ayahTimer = setInterval(() => {
+    if (!player) return;
+    const ct = player.currentTime;
+    if (lastAyahTick === 0) {
+      lastAyahTick = ct;
+      return;
+    }
+    if (ct - lastAyahTick < AYAH_SECONDS - 0.3) return;
+    lastAyahTick = 0; // re-anchor after the seek performed below
+    if (playMode === 'memorize' && memorize) {
+      void advanceMemorize();
+    } else if (playMode === 'surah' && useSettings.getState().audio.repeat === 'verse') {
+      void (async () => {
+        const p = getPlayer();
+        const seek = Math.max(0, (startAyah ?? 1) - 2) * AYAH_SECONDS;
+        const dur = p.duration;
+        await p.seekTo(dur > 0 ? Math.min(seek, Math.max(0, dur - 2)) : seek);
+        p.play();
+      })();
+    }
+  }, 1000);
+}
+
+function stopAyahTimer() {
+  if (ayahTimer) {
+    clearInterval(ayahTimer);
+    ayahTimer = null;
+  }
+  lastAyahTick = 0;
 }
 
 export function subscribeToPlayer(cb: (status: PlayerStatus) => void): () => void {
@@ -123,6 +173,8 @@ async function playSurahMode(surah: number, fromAyah: number | undefined, mode: 
   memorize = null;
   playMode = mode;
   currentSurah = surah;
+  startAyah = fromAyah ?? 1;
+  if (mode === 'surah') startAyahTimer();
   await initAudioMode();
   const p = getPlayer();
   const local = surahAudioPath(reciterId, surah);
@@ -184,7 +236,9 @@ export async function playWord(surah: number, ayah: number, word: number): Promi
   }
   memorize = null;
   playMode = 'word';
+  stopAyahTimer();
   currentSurah = surah;
+  startAyah = ayah;
   await initAudioMode();
   try {
     const p = getPlayer();
@@ -211,7 +265,9 @@ export function stop(): void {
   memorize = null;
   playMode = null;
   currentSurah = null;
-  lastStatus = { ...lastStatus, playing: false, isLoaded: false, surah: null, memorize: null };
+  startAyah = null;
+  stopAyahTimer();
+  lastStatus = { ...lastStatus, playing: false, isLoaded: false, surah: null, memorize: null, startAyah: null };
   emit();
 }
 
@@ -231,12 +287,26 @@ async function handleFinished(): Promise<void> {
   if (playMode !== 'surah') {
     playMode = null;
     currentSurah = null;
+    startAyah = null;
+    stopAyahTimer();
     player?.pause();
-    lastStatus = { ...lastStatus, playing: false, didJustFinish: false, surah: null };
+    lastStatus = { ...lastStatus, playing: false, didJustFinish: false, surah: null, startAyah: null };
     emit();
     return;
   }
   if (!surah) return;
+  if (audio.repeat === 'verse') {
+    // Repeat the ayah the segment started from instead of moving on.
+    const p = getPlayer();
+    const seek = Math.max(0, (startAyah ?? 1) - 2) * AYAH_SECONDS;
+    const dur = p.duration;
+    await p.seekTo(dur > 0 ? Math.min(seek, Math.max(0, dur - 2)) : seek);
+    lastAyahTick = 0;
+    p.play();
+    lastStatus = { ...lastStatus, didJustFinish: false };
+    emit();
+    return;
+  }
   if (audio.repeat === 'surah') {
     await playSurah(surah);
     return;
@@ -250,31 +320,42 @@ async function handleFinished(): Promise<void> {
 }
 
 async function advanceMemorize(): Promise<void> {
-  const m = memorize;
-  if (!m) return;
-  const p = getPlayer();
-  if (m.repeatLeft > 1) {
-    m.repeatLeft -= 1;
-  } else if (m.currentAyah < m.to) {
-    m.currentAyah += 1;
-    m.repeatLeft = m.repeatTimes;
-  } else {
-    memorize = null;
-    lastStatus = { ...lastStatus, didJustFinish: false, memorize: null };
-    p.pause();
+  if (memorizeAdvancing) return;
+  memorizeAdvancing = true;
+  try {
+    const m = memorize;
+    if (!m) return;
+    const p = getPlayer();
+    if (m.repeatLeft > 1) {
+      m.repeatLeft -= 1;
+    } else if (m.currentAyah < m.to) {
+      m.currentAyah += 1;
+      m.repeatLeft = m.repeatTimes;
+    } else {
+      memorize = null;
+      lastStatus = { ...lastStatus, didJustFinish: false, memorize: null };
+      p.pause();
+      stopAyahTimer();
+      emit();
+      return;
+    }
+    const dur = p.duration;
+    const seek = Math.min((m.currentAyah - 1) * AYAH_SECONDS, dur > 0 ? Math.max(0, dur - 2) : Number.MAX_SAFE_INTEGER);
+    await p.seekTo(seek);
+    lastStatus = { ...lastStatus, didJustFinish: false, memorize };
+    p.play();
     emit();
-    return;
+  } finally {
+    memorizeAdvancing = false;
   }
-  await p.seekTo((m.currentAyah - 1) * 25);
-  lastStatus = { ...lastStatus, didJustFinish: false, memorize };
-  p.play();
-  emit();
 }
 
 export async function startMemorizeRange(surah: number, from: number, to: number, times: number): Promise<void> {
   memorize = { surah, from, to, repeatTimes: times, repeatLeft: times, currentAyah: from };
   playMode = 'memorize';
   currentSurah = surah;
+  startAyah = from;
+  startAyahTimer();
   const { reciterId } = useSettings.getState().audio;
   await initAudioMode();
   const p = getPlayer();
@@ -283,7 +364,8 @@ export async function startMemorizeRange(surah: number, from: number, to: number
   try {
     p.replace({ uri: source });
     p.setPlaybackRate(useSettings.getState().audio.speed);
-    await p.seekTo((from - 1) * 25);
+    const dur = await waitForDuration(p);
+    await p.seekTo(Math.min((from - 1) * AYAH_SECONDS, dur > 0 ? Math.max(0, dur - 2) : Number.MAX_SAFE_INTEGER));
     p.play();
   } catch (e) {
     console.warn('startMemorizeRange failed', e);

@@ -123,7 +123,7 @@ export default function HadithTab() {
                 </Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text variant="body" font="uiBold" style={rtl ? styles.rtlTitle : undefined}>
+                <Text variant="body" font={rtl ? 'arabicBold' : 'uiBold'} style={rtl ? styles.rtlTitle : undefined}>
                   {rtl && item.title_arabic ? item.title_arabic : item.title}
                 </Text>
                 <Text variant="caption" color="secondary" style={rtl ? styles.rtlTitle : undefined}>
@@ -178,5 +178,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  rtlTitle: { textAlign: 'right', writingDirection: 'rtl' },
+  rtlTitle: { textAlign: 'right', direction: 'rtl' },
 });

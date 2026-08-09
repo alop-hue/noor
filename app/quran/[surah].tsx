@@ -54,7 +54,8 @@ export default function ReaderScreen() {
   const [note, setNote] = useState('');
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isMemorized, setIsMemorized] = useState(false);
-  const [player, setPlayer] = useState<PlayerStatus>({ playing: false, isLoaded: false, currentTime: 0, duration: 0, didJustFinish: false, surah: null, memorize: null });
+  const [isHidden, setIsHidden] = useState(false);
+  const [player, setPlayer] = useState<PlayerStatus>({ playing: false, isLoaded: false, currentTime: 0, duration: 0, didJustFinish: false, surah: null, memorize: null, startAyah: null });
   const listRef = useRef<FlatList<LoadedVerse>>(null);
   const [sheetVerse, setSheetVerse] = useState<number | null>(null);
   const [memorizeMode, setMemorizeMode] = useState(params.memorize === '1');
@@ -108,6 +109,7 @@ export default function ReaderScreen() {
     const [bm, m, n] = await Promise.all([isAyahBookmarked(v.ayah.surah, v.ayah.ayah), isAyahMemorized(v.ayah.surah, v.ayah.ayah), getNote(v.ayah.surah, v.ayah.ayah)]);
     setIsBookmarked(bm);
     setIsMemorized(m);
+    setIsHidden(hidden.has(v.ayah.ayah));
     setNote(n ?? '');
     const srcs = TAFSIR_SOURCES.map((s) => s.id);
     const rows = await getTafsir(srcs, v.ayah.surah, v.ayah.ayah);
@@ -198,7 +200,15 @@ export default function ReaderScreen() {
   const playingThis = player.surah === surahId && player.playing;
   const resumeFrom = lastRead && lastRead.surah === surahId ? lastRead.ayah : undefined;
   const startPlayback = () => playSurah(surahId, resumeFrom);
-  const activeAyah = playingThis ? Math.min(verses?.length ?? 1, Math.floor(player.currentTime / 25) + 1) : null;
+  // Accurate reading ayah: playback may have started mid-surah (seeked), so the
+  // ayah is computed relative to the segment's starting ayah and elapsed time.
+  const activeAyah =
+    playingThis && player.startAyah
+      ? Math.min(
+          verses?.length ?? 1,
+          player.startAyah + Math.floor(Math.max(0, player.currentTime - Math.max(0, (player.startAyah - 2) * 25)) / 25),
+        )
+      : null;
 
   if (!surah || !verses) return <LoadingState label={t('common.loading')} />;
 
@@ -221,6 +231,9 @@ export default function ReaderScreen() {
                 : `${surah.english_name} · ${t(`quran.${surah.type === 'Meccan' ? 'meccan' : 'medinan'}`)} · ${surah.ayahs}`}
             </Text>
           </View>
+          <Pressable onPress={() => setSettingsOpen(true)} hitSlop={8} style={[styles.iconBtn, { backgroundColor: colors.primarySoft }]}>
+            <Ionicons name="options-outline" size={18} color={colors.primary} />
+          </Pressable>
           <Pressable
             onPress={() => (playingThis ? togglePlayPause() : startPlayback())}
             hitSlop={8}
@@ -228,13 +241,6 @@ export default function ReaderScreen() {
           >
             <Ionicons name={playingThis ? 'pause' : 'play'} size={18} color={colors.primary} />
           </Pressable>
-        </View>
-        <View style={styles.controlsWrap}>
-          <View style={styles.controls}>
-            <Pressable onPress={() => setSettingsOpen(true)} hitSlop={8} style={[styles.iconBtn, { backgroundColor: colors.primarySoft }]}>
-              <Ionicons name="options-outline" size={18} color={colors.primary} />
-            </Pressable>
-          </View>
         </View>
       </View>
 
@@ -284,7 +290,9 @@ export default function ReaderScreen() {
                   <Text variant="bodySmall" font="uiBold" color={activeRec ? 'primary' : 'text'}>
                     {i18n.language.startsWith('ar') ? (r.ar ?? r.name) : r.name}
                   </Text>
-                  <Text variant="micro" color="tertiary">{r.style}</Text>
+                  {i18n.language.startsWith('en') ? (
+                    <Text variant="micro" color="tertiary">{r.style}</Text>
+                  ) : null}
                 </View>
                 {activeRec ? <Ionicons name="checkmark-circle" size={20} color={colors.primary} /> : null}
               </Pressable>
@@ -318,6 +326,8 @@ export default function ReaderScreen() {
           // Hold an aya to start the full surah recitation from it
           void playSurah(surahId, ayah);
         }}
+        hiddenAyahs={hidden}
+        onToggleHidden={(ayah) => toggleHiddenState(ayah)}
         onPageChange={(ayah) => setLastRead(surahId, ayah)}
         onNextSurah={() => surahId < 114 && router.replace(`/quran/${surahId + 1}`)}
       />
@@ -368,6 +378,12 @@ export default function ReaderScreen() {
         onClose={() => setSheetVerse(null)}
         verse={active}
         surah={surah}
+        isHidden={isHidden}
+        onToggleHidden={() => {
+          if (!active) return;
+          toggleHiddenState(active.ayah.ayah);
+          setIsHidden((h) => !h);
+        }}
         tafsir={tafsir}
         tafsirTab={tafsirTab}
         setTafsirTab={setTafsirTab}
@@ -407,7 +423,7 @@ export default function ReaderScreen() {
 }
 
 function VerseSheet({
-  visible, onClose, verse, surah, tafsir, tafsirTab, setTafsirTab, isBookmarked, onToggleBookmark, isMemorized, onToggleMemorize, note, setNote, onSaveNote, onCopy, onShare, onPlay, defaultTranslation, onChangeTranslation, isArabic, showTafsir, t, colors,
+  visible, onClose, verse, surah, tafsir, tafsirTab, setTafsirTab, isBookmarked, onToggleBookmark, isMemorized, onToggleMemorize, note, setNote, onSaveNote, onCopy, onShare, onPlay, defaultTranslation, onChangeTranslation, isArabic, showTafsir, isHidden, onToggleHidden, t, colors,
 }: {
   visible: boolean;
   onClose: () => void;
@@ -430,6 +446,8 @@ function VerseSheet({
   onChangeTranslation: (ed: string) => void;
   isArabic: boolean;
   showTafsir: boolean;
+  isHidden: boolean;
+  onToggleHidden: () => void;
   t: (k: string, o?: Record<string, unknown>) => string;
   colors: ReturnType<typeof useTheme>['colors'];
 }) {
@@ -517,6 +535,7 @@ function VerseSheet({
                 <ActionBtn icon={isBookmarked ? 'bookmark' : 'bookmark-outline'} label={t('quran.bookmarkVerse')} onPress={onToggleBookmark} active={isBookmarked} colors={colors} />
                 <ActionBtn icon={isMemorized ? 'school' : 'school-outline'} label={t('memorize.title')} onPress={onToggleMemorize} active={isMemorized} colors={colors} />
                 <ActionBtn icon="play" label={t('quran.audio')} onPress={onPlay} colors={colors} />
+                <ActionBtn icon={isHidden ? 'eye' : 'eye-off-outline'} label={isHidden ? t('quran.showAyah') : t('quran.hideAyah')} onPress={onToggleHidden} active={isHidden} colors={colors} />
                 <ActionBtn icon="copy-outline" label={t('quran.copyVerse')} onPress={onCopy} colors={colors} />
                 <ActionBtn icon="share-outline" label={t('common.share')} onPress={onShare} colors={colors} />
               </View>

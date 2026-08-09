@@ -79,6 +79,9 @@ const en = {
     goto: 'Go to',
     endOfSurah: 'End of Surah',
     nextSurah: 'Next surah',
+    hiddenAyah: 'Hidden',
+    hideAyah: 'Hide verse',
+    showAyah: 'Show verse',
   },
 
   hadith: {

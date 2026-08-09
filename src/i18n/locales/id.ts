@@ -81,6 +81,9 @@ const id: Translation = {
     goto: 'Lanjut',
     endOfSurah: 'Akhir surah',
     nextSurah: 'Surah berikutnya',
+    hiddenAyah: 'Tersembunyi',
+    hideAyah: 'Sembunyikan ayat',
+    showAyah: 'Tampilkan ayat',
   },
 
   hadith: {

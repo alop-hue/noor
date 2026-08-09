@@ -15,7 +15,8 @@ import { useTheme } from '@/theme/ThemeContext';
 import { radius, space } from '@/theme/tokens';
 
 export default function HadithBookScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isArabic = i18n.language.startsWith('ar');
   const { colors } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -67,11 +68,11 @@ export default function HadithBookScreen() {
           <Ionicons name="chevron-back" size={24} color={colors.text} />
         </Pressable>
         <View style={{ alignItems: 'center', flex: 1 }}>
-          <Text variant="subheading" font="uiBold" numberOfLines={1}>
-            {book?.title ?? params.book}
+          <Text variant="subheading" font={isArabic ? 'arabicBold' : 'uiBold'} numberOfLines={1} style={isArabic ? styles.rtlTitle : undefined}>
+            {isArabic ? (book?.title_arabic ?? book?.title ?? params.book) : (book?.title ?? params.book)}
           </Text>
-          <Text variant="caption" color="secondary">
-            {t('hadith.by', { author: book?.author ?? '' })}
+          <Text variant="caption" color="secondary" style={isArabic ? styles.rtlTitle : undefined}>
+            {t('hadith.by', { author: isArabic ? (book?.author_arabic ?? book?.author ?? '') : (book?.author ?? '') })}
           </Text>
         </View>
         <View style={{ width: 24 }} />
@@ -115,9 +116,11 @@ export default function HadithBookScreen() {
               <Text variant="bodySmall" font="arabicBold" style={{ color: colors.quranText, textAlign: 'right', marginTop: space[2] }}>
                 {item.arabic}
               </Text>
-              <Text variant="bodySmall" color="secondary" numberOfLines={4} style={{ marginTop: space[2] }}>
-                {item.english}
-              </Text>
+              {!isArabic ? (
+                <Text variant="bodySmall" color="secondary" numberOfLines={4} style={{ marginTop: space[2] }}>
+                  {item.english}
+                </Text>
+              ) : null}
             </Pressable>
           )}
         />
@@ -134,6 +137,7 @@ export default function HadithBookScreen() {
         }}
         onCopy={copy}
         onShare={share}
+        isArabic={isArabic}
         t={t}
         colors={colors}
       />
@@ -142,7 +146,7 @@ export default function HadithBookScreen() {
 }
 
 function HadithSheet({
-  visible, hadith, onClose, bookmarked, onToggleBookmark, onCopy, onShare, t, colors,
+  visible, hadith, onClose, bookmarked, onToggleBookmark, onCopy, onShare, isArabic, t, colors,
 }: {
   visible: boolean;
   hadith: HadithRow | null;
@@ -151,6 +155,7 @@ function HadithSheet({
   onToggleBookmark: () => void;
   onCopy: () => void;
   onShare: () => void;
+  isArabic: boolean;
   t: (k: string, o?: Record<string, unknown>) => string;
   colors: ReturnType<typeof useTheme>['colors'];
 }) {
@@ -166,9 +171,11 @@ function HadithSheet({
               <Text variant="body" font="arabicBold" style={{ color: colors.quranText, textAlign: 'right', marginTop: space[3] }}>
                 {hadith.arabic}
               </Text>
-              <Text variant="body" color="secondary" style={{ marginTop: space[3], lineHeight: 24 }}>
-                {hadith.english}
-              </Text>
+              {!isArabic ? (
+                <Text variant="body" color="secondary" style={{ marginTop: space[3], lineHeight: 24 }}>
+                  {hadith.english}
+                </Text>
+              ) : null}
               {hadith.grade ? (
                 <Text variant="caption" color="tertiary" style={{ marginTop: space[3] }}>
                   {t('hadith.grade')}: {hadith.grade}
@@ -201,6 +208,7 @@ function ActionBtn({ icon, label, onPress, active, colors }: { icon: keyof typeo
 }
 
 const styles = StyleSheet.create({
+  rtlTitle: { textAlign: 'right', direction: 'rtl' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -81,6 +81,9 @@ const tr: Translation = {
     goto: 'Git',
     endOfSurah: 'Sûrenin sonu',
     nextSurah: 'Sonraki sûre',
+    hiddenAyah: 'Gizli',
+    hideAyah: 'Ayeti gizle',
+    showAyah: 'Ayeti göster',
   },
 
   hadith: {

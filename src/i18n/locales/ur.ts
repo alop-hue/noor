@@ -81,6 +81,9 @@ const ur: Translation = {
     goto: 'جائیں',
     endOfSurah: 'سورہ کی انتہا',
     nextSurah: 'اگلی سورہ',
+    hiddenAyah: 'مخفی',
+    hideAyah: 'آیت چھپائیں',
+    showAyah: 'آیت دکھائیں',
   },
 
   hadith: {

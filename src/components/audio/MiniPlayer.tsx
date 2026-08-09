@@ -12,17 +12,19 @@ import { useTheme } from '@/theme/ThemeContext';
 import { radius, space } from '@/theme/tokens';
 
 export function MiniPlayer() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useTheme();  const { audio, setAudio } = useSettings();
-  const [status, setStatus] = useState<PlayerStatus>({ playing: false, isLoaded: false, currentTime: 0, duration: 0, didJustFinish: false, surah: null, memorize: null });
+  const [status, setStatus] = useState<PlayerStatus>({ playing: false, isLoaded: false, currentTime: 0, duration: 0, didJustFinish: false, surah: null, memorize: null, startAyah: null });
   const [surahName, setSurahName] = useState('');
   const [open, setOpen] = useState(false);
   const [sleepMins, setSleepMins] = useState<number | null>(null);
 
   useEffect(() => subscribeToPlayer(setStatus), []);
   useEffect(() => {
-    if (status.surah && status.surah !== 0) getSurah(status.surah).then((s) => setSurahName(s?.english_name ?? ''));
-  }, [status.surah]);
+    if (status.surah && status.surah !== 0) {
+      getSurah(status.surah).then((s) => setSurahName(i18n.language.startsWith('ar') ? (s?.name ?? '') : (s?.english_name ?? '')));
+    }
+  }, [status.surah, i18n.language]);
 
   if (!status.isLoaded || !status.surah) return null;
 

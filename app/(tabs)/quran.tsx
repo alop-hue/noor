@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Segmented, Text, LoadingState } from '@/components/ui';
 import { getByJuz, getByPage, getSurahs, type SurahRow } from '@/db/queries';
-import { surahDisplayName } from '@/features/quran/surahNames';
+import { arabicSurahName, surahDisplayName } from '@/features/quran/surahNames';
 import { useSettings } from '@/store/settings';
 import { useTheme } from '@/theme/ThemeContext';
 import { radius, space } from '@/theme/tokens';
@@ -30,6 +30,7 @@ export default function QuranTab() {
   const openSearch = () => router.push('/quran/search');
   const openSurah = (id: number) => router.push(`/quran/${id}`);
 
+  const rtl = i18n.language.startsWith('ar');
   const lastReadSurah = lastRead ? surahs?.find((s) => s.id === lastRead.surah) : undefined;
 
   return (
@@ -83,8 +84,8 @@ export default function QuranTab() {
                 <Text variant="bodySmall" font="uiBold" color="primary">
                   {t('quran.continueReading')}
                 </Text>
-                <Text variant="bodySmall" color="secondary" numberOfLines={1} style={{ flex: 1 }}>
-                  {lastReadSurah?.english_name} · {t('quran.verseNumber')} {lastRead.ayah}
+                <Text variant="bodySmall" color="secondary" numberOfLines={1} style={[{ flex: 1 }, rtl && styles.rtlText]}>
+                  {rtl ? (lastReadSurah?.name ?? '') : (lastReadSurah?.english_name ?? '')} · {t('quran.verseNumber')} {lastRead.ayah}
                 </Text>
               </Pressable>
             ) : null}
@@ -100,6 +101,7 @@ export default function QuranTab() {
                     style={({ pressed }) => [
                       styles.surahRow,
                       { borderBottomColor: colors.hairline },
+                      rtl && styles.rtlRow,
                       isLast && { backgroundColor: colors.primarySoft },
                       pressed && { backgroundColor: colors.bgSunken },
                     ]}
@@ -110,17 +112,19 @@ export default function QuranTab() {
                       </Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text variant="body" font="uiBold">
-                        {item.english_name}
+                      <Text variant="body" font={rtl ? 'arabicBold' : 'uiBold'} style={rtl ? styles.rtlText : undefined}>
+                        {rtl ? arabicSurahName(item.id) : item.english_name}
                       </Text>
-                      <Text variant="caption" color="secondary">
+                      <Text variant="caption" color="secondary" style={rtl ? styles.rtlText : undefined}>
                         {item.translation} · {t('quran.verses', { n: item.ayahs })} · {t(`quran.${item.type === 'Meccan' ? 'meccan' : 'medinan'}`)}
                         {isLast ? ` · ${t('quran.verseNumber')} ${lastRead!.ayah}` : ''}
                       </Text>
                     </View>
-                    <Text variant="body" font="arabicBold" style={{ fontSize: 20 }}>
-                      {surahDisplayName(item.id, item.name, i18n.language)}
-                    </Text>
+                    {!rtl ? (
+                      <Text variant="body" font="arabicBold" style={{ fontSize: 20 }}>
+                        {surahDisplayName(item.id, item.name, i18n.language)}
+                      </Text>
+                    ) : null}
                   </Pressable>
                 );
               }}
@@ -200,6 +204,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
   },
   segRow: { paddingHorizontal: space[4], paddingBottom: space[3] },
+  rtlRow: { direction: 'rtl' },
+  rtlText: { textAlign: 'right' },
   continueChip: {
     flexDirection: 'row',
     alignItems: 'center',

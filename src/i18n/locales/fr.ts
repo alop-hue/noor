@@ -81,6 +81,9 @@ const fr: Translation = {
     goto: 'Aller',
     endOfSurah: 'Fin de la sourate',
     nextSurah: 'Sourate suivante',
+    hiddenAyah: 'Masqué',
+    hideAyah: 'Masquer le verset',
+    showAyah: 'Afficher le verset',
   },
 
   hadith: {
