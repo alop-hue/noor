@@ -17,6 +17,7 @@ export const RECITERS: Reciter[] = reciters as Reciter[];
 
 let player: AudioPlayer | null = null;
 let currentSurah: number | null = null;
+let playMode: 'surah' | 'word' | 'memorize' | null = null;
 let listeners = new Set<(status: PlayerStatus) => void>();
 let sleepTimerMs: number | null = null;
 let sleepTimerHandle: ReturnType<typeof setTimeout> | null = null;
@@ -111,6 +112,7 @@ export async function initAudioMode(): Promise<void> {
 export async function playSurah(surah: number, fromAyah?: number): Promise<void> {
   const { reciterId } = useSettings.getState().audio;
   memorize = null;
+  playMode = 'surah';
   currentSurah = surah;
   await initAudioMode();
   const p = getPlayer();
@@ -153,6 +155,7 @@ export async function playWord(surah: number, ayah: number, word: number): Promi
     return false;
   }
   memorize = null;
+  playMode = 'word';
   currentSurah = surah;
   await initAudioMode();
   try {
@@ -178,6 +181,7 @@ export function stop(): void {
     player = null;
   }
   memorize = null;
+  playMode = null;
   currentSurah = null;
   lastStatus = { ...lastStatus, playing: false, isLoaded: false, surah: null, memorize: null };
   emit();
@@ -192,6 +196,16 @@ async function handleFinished(): Promise<void> {
   const { surah } = lastStatus;
   if (memorize) {
     await advanceMemorize();
+    return;
+  }
+  // Word-level audio must never auto-advance to another surah.
+  // Only full-surah playback may continue via repeat/gapless.
+  if (playMode !== 'surah') {
+    playMode = null;
+    currentSurah = null;
+    player?.pause();
+    lastStatus = { ...lastStatus, playing: false, didJustFinish: false, surah: null };
+    emit();
     return;
   }
   if (!surah) return;
@@ -231,6 +245,7 @@ async function advanceMemorize(): Promise<void> {
 
 export async function startMemorizeRange(surah: number, from: number, to: number, times: number): Promise<void> {
   memorize = { surah, from, to, repeatTimes: times, repeatLeft: times, currentAyah: from };
+  playMode = 'memorize';
   currentSurah = surah;
   const { reciterId } = useSettings.getState().audio;
   await initAudioMode();

@@ -208,5 +208,12 @@
     "style": "Madinah · Murattal",
     "server": "https://server6.mp3quran.net/akdr/",
     "ar": "إبراهيم الأخضر"
+  },
+  {
+    "id": "luhaidan",
+    "name": "Muhammad Al-Luhaidan",
+    "style": "Saudi · Murattal",
+    "server": "https://server8.mp3quran.net/lhdan/",
+    "ar": "محمد اللحيدان"
   }
 ]

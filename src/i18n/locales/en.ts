@@ -198,16 +198,19 @@ const en = {
     names99Hint: 'Names of Allah with meanings',
     names99Search: 'Search name or meaning…',
     names99Meaning: 'Meaning',
-
-    verses: 'Verses mentioning this name',
-
-    noVerses: 'No verses found',
     tasbihCount: '{n}',
 
     editDhikr: 'Change dhikr',
     reset: 'Reset',
     target: 'Target',
     haptic: 'Haptic feedback',
+  },
+
+  names99: {
+
+    verses: 'Verses mentioning this name',
+
+    noVerses: 'No verses found',
   },
 
   dhikr: {

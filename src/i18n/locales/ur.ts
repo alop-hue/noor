@@ -200,16 +200,19 @@ const ur: Translation = {
     names99Hint: 'اللہ کے نام اور ان کے معانی',
     names99Search: 'نام یا معنی تلاش کریں…',
     names99Meaning: 'معنی',
-
-    verses: 'اس نام کا ذکر کرنے والی آیات',
-
-    noVerses: 'کوئی آیت نہیں ملی',
     tasbihCount: '{n}',
 
     editDhikr: 'ذکر تبدیل کریں',
     reset: 'ری سیٹ',
     target: 'ہدف',
     haptic: 'ہیپٹک فیڈ بیک',
+  },
+
+  names99: {
+
+    verses: 'اس نام کا ذکر کرنے والی آیات',
+
+    noVerses: 'کوئی آیت نہیں ملی',
   },
 
   dhikr: {

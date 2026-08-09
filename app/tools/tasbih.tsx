@@ -71,7 +71,7 @@ export default function TasbihScreen() {
 
         <Pressable onPress={() => { setDraft(tasbihDhikr); setEditOpen(true); }} hitSlop={8} style={{ marginTop: space[2] }}>
           <Text variant="caption" color="tertiary">
-            {t('tasbih.editDhikr')} <Ionicons name="pencil" size={12} color={colors.textTertiary} />
+            {t('tools.editDhikr')} <Ionicons name="pencil" size={12} color={colors.textTertiary} />
           </Text>
         </Pressable>
 
@@ -103,7 +103,7 @@ export default function TasbihScreen() {
       <ResizableSheet visible={editOpen} onClose={() => setEditOpen(false)}>
         <View style={{ paddingHorizontal: space[5], paddingBottom: insets.bottom + space[4] }}>
           <Text variant="subheading" font="uiBold" style={{ textAlign: 'center', marginBottom: space[4] }}>
-            {t('tasbih.editDhikr')}
+            {t('tools.editDhikr')}
           </Text>
           <TextInput
             value={draft}

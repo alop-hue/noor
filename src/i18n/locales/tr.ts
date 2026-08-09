@@ -200,16 +200,19 @@ const tr: Translation = {
     names99Hint: 'Allah\u0027ın güzel isimleri ve anlamları',
     names99Search: 'İsim veya anlam ara…',
     names99Meaning: 'Anlam',
-
-    verses: 'Bu ismi anan ayetler',
-
-    noVerses: 'Ayet bulunamadı',
     tasbihCount: '{n}',
 
     editDhikr: 'Zikri değiştir',
     reset: 'Sıfırla',
     target: 'Hedef',
     haptic: 'Titreşim geri bildirimi',
+  },
+
+  names99: {
+
+    verses: 'Bu ismi anan ayetler',
+
+    noVerses: 'Ayet bulunamadı',
   },
 
   dhikr: {

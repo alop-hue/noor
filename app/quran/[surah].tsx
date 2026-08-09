@@ -303,7 +303,6 @@ export default function ReaderScreen() {
         memorizeMode={memorizeMode}
         tajweed={tajweed}
         wordByWord={wordByWord}
-        isPlaying={playingThis}
         onPressAyah={(ayah) => {
           const v = verses.find((x) => x.ayah.ayah === ayah);
           if (v) void openSheet(v);
@@ -313,9 +312,9 @@ export default function ReaderScreen() {
             if (!ok) void playSurah(surahId, ayah);
           });
         }}
-        onPlayPage={(firstAyah) => {
-          if (playingThis) togglePlayPause();
-          else void playSurah(surahId, firstAyah);
+        onLongPressAyah={(ayah) => {
+          // Hold an aya to start the full surah recitation from it
+          void playSurah(surahId, ayah);
         }}
         onPageChange={(ayah) => setLastRead(surahId, ayah)}
         onNextSurah={() => surahId < 114 && router.replace(`/quran/${surahId + 1}`)}

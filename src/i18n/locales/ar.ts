@@ -200,16 +200,19 @@ const ar: Translation = {
     names99Hint: 'أسماء الله الحسنى ومعانيها',
     names99Search: 'ابحث عن الاسم أو المعنى…',
     names99Meaning: 'المعنى',
-
-    verses: 'آيات ورد فيها هذا الاسم',
-
-    noVerses: 'لا توجد آيات',
     tasbihCount: '{n}',
 
     editDhikr: 'تغيير الذكر',
     reset: 'إعادة',
     target: 'الهدف',
     haptic: 'الاهتزاز اللمسي',
+  },
+
+  names99: {
+
+    verses: 'آيات ورد فيها هذا الاسم',
+
+    noVerses: 'لا توجد آيات',
   },
 
   dhikr: {

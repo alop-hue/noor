@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Clipboard, FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Clipboard, FlatList, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
@@ -53,11 +53,25 @@ export default function Names99Screen() {
     }
     let cancelled = false;
     setLoadingVerses(true);
-    getAyahsMentioning(detail.kw, 3).then((rows) => {
+    (async () => {
+      const direct = await getAyahsMentioning(detail.kw, 3);
       if (cancelled) return;
-      setVerses(rows);
+      if (direct.length > 0) {
+        setVerses(direct);
+        setLoadingVerses(false);
+        return;
+      }
+      const words = detail.kw.split(' ').filter((w) => w.length >= 2);
+      for (const w of words) {
+        const rows = await getAyahsMentioning(w, 3);
+        if (cancelled) return;
+        if (rows.length > 0) {
+          setVerses(rows);
+          break;
+        }
+      }
       setLoadingVerses(false);
-    });
+    })();
     return () => {
       cancelled = true;
     };
@@ -124,7 +138,7 @@ export default function Names99Screen() {
 
       <ResizableSheet visible={detail !== null} onClose={() => setDetail(null)}>
         {detail && (
-          <View style={{ paddingHorizontal: space[5], paddingBottom: insets.bottom + space[4] }}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: space[5], paddingBottom: insets.bottom + space[4] }}>
             <View style={{ alignItems: 'center', marginBottom: space[3] }}>
               <Text variant="caption" font="uiBold" color="tertiary" style={styles.section}>
                 {t('tools.names99Meaning')}
@@ -176,7 +190,7 @@ export default function Names99Screen() {
               <Ionicons name="copy-outline" size={16} color={colors.primary} />
               <Text variant="bodySmall" font="uiBold" color="primary">{t('common.copy')}</Text>
             </Pressable>
-          </View>
+          </ScrollView>
         )}
       </ResizableSheet>
     </View>

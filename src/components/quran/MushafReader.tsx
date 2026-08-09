@@ -35,10 +35,9 @@ interface Props {
   memorizeMode?: boolean;
   tajweed: boolean;
   wordByWord?: boolean;
-  isPlaying?: boolean;
   onPressAyah: (ayah: number) => void;
   onPressWord?: (ayah: number, word: number) => void;
-  onPlayPage?: (firstAyah: number) => void;
+  onLongPressAyah?: (ayah: number) => void;
   onPageChange: (ayah: number) => void;
   onNextSurah?: () => void;
 }
@@ -47,6 +46,16 @@ const FONT_SIZE = 32;
 const LINE_HEIGHT = 58;
 const H_PADDING = 22;
 const PROBE_TEXT = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ الْحَمْدُ لِلَّهِ';
+const PAGE_BG = '#0C1210';
+const PAGE_TEXT = '#F2EBD8';
+const MARKER = '#B39B7D';
+const TAJWEED = {
+  madd: '#E07B6E',
+  qalqalah: '#7FB3D5',
+  ghunnah: '#82D4A4',
+  ikhfa: '#D8BE6E',
+  hamzat: '#C39BD3',
+} as const;
 
 const toArabicDigits = (n: number) =>
   String(n).replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
@@ -61,10 +70,9 @@ export function MushafReader({
   memorizeMode,
   tajweed,
   wordByWord,
-  isPlaying,
   onPressAyah,
   onPressWord,
-  onPlayPage,
+  onLongPressAyah,
   onPageChange,
   onNextSurah,
 }: Props) {
@@ -158,70 +166,74 @@ export function MushafReader({
     const isActive = activeAyah === v.ayah;
     const isFocus = memorizeMode && focusAyah === v.ayah;
     const bg = isActive
-      ? colors.primarySoft
+      ? 'rgba(201,162,39,0.28)'
       : isFocus
-        ? 'rgba(201,162,39,0.22)'
+        ? 'rgba(201,162,39,0.16)'
         : 'transparent';
     const words = splitWords(v.arabic);
     const spans = tajweed ? colorizeWords(words) : null;
     const marker = (
-      <RNText key={`m${v.ayah}`} style={styles.marker} onPress={() => onPressAyah(v.ayah)}>
+      <RNText
+        key={`m${v.ayah}`}
+        style={[styles.marker, { color: MARKER }]}
+        onPress={() => onPressAyah(v.ayah)}
+      >
         ﴿{toArabicDigits(v.ayah)}﴾
       </RNText>
     );
+    const base = [
+      styles.ayahSpan,
+      {
+        backgroundColor: bg,
+        color: PAGE_TEXT,
+      },
+    ];
+    const pressProps = {
+      onPress: () => onPressAyah(v.ayah),
+      onLongPress: onLongPressAyah ? () => onLongPressAyah(v.ayah) : undefined,
+      delayLongPress: 400,
+    };
     if (wordByWord && onPressWord) {
       return (
-        <RNText
-          key={v.ayah}
-          style={[styles.ayahSpan, { backgroundColor: bg }]}
-          onPress={() => onPressAyah(v.ayah)}
-        >
+        <RNText key={v.ayah} style={base} {...pressProps}>
           {words.map((word, i) => (
             <RNText
               key={`w${i}`}
-              style={styles.wordTap}
+              style={[styles.wordTap, { color: PAGE_TEXT }]}
               onPress={() => onPressWord(v.ayah, i + 1)}
             >
               {word}{' '}
             </RNText>
           ))}
-          {v.sajda === 1 ? <RNText style={{ color: colors.accent }}> ۩ </RNText> : null}
+          {v.sajda === 1 ? <RNText style={{ color: '#D4AF37' }}> ۩ </RNText> : null}
           {marker}
         </RNText>
       );
     }
     if (spans) {
       return (
-        <RNText
-          key={v.ayah}
-          style={[styles.ayahSpan, { backgroundColor: bg }]}
-          onPress={() => onPressAyah(v.ayah)}
-        >
+        <RNText key={v.ayah} style={base} {...pressProps}>
           {spans.map((word, i) =>
             word.map((span, j) => (
               <RNText
                 key={`${i}-${j}`}
                 style={{
-                  color: span.color === 'default' ? colors.quranText : colors.tajweed[span.color],
+                  color: span.color === 'default' ? PAGE_TEXT : TAJWEED[span.color],
                 }}
               >
                 {span.text}{' '}
               </RNText>
             )),
           )}
-          {v.sajda === 1 ? <RNText style={{ color: colors.accent }}> ۩ </RNText> : null}
+          {v.sajda === 1 ? <RNText style={{ color: '#D4AF37' }}> ۩ </RNText> : null}
           {marker}
         </RNText>
       );
     }
     return (
-      <RNText
-        key={v.ayah}
-        style={[styles.ayahSpan, { backgroundColor: bg }]}
-        onPress={() => onPressAyah(v.ayah)}
-      >
-        <RNText style={{ color: colors.quranText }}>{v.arabic}</RNText>
-        {v.sajda === 1 ? <RNText style={{ color: colors.accent }}> ۩ </RNText> : null}
+      <RNText key={v.ayah} style={base} {...pressProps}>
+        <RNText style={{ color: PAGE_TEXT }}>{v.arabic}</RNText>
+        {v.sajda === 1 ? <RNText style={{ color: '#D4AF37' }}> ۩ </RNText> : null}
         {marker}
       </RNText>
     );
@@ -247,8 +259,9 @@ export function MushafReader({
   const lastPage = pages.length - 1;
 
   return (
-    <View style={{ flex: 1 }} onLayout={onLayout}>
-      <FlatList showsVerticalScrollIndicator={false}
+    <View style={{ flex: 1, backgroundColor: PAGE_BG }} onLayout={onLayout}>
+      <FlatList
+        showsVerticalScrollIndicator={false}
         ref={listRef}
         data={pages}
         keyExtractor={(_, i) => String(i)}
@@ -268,13 +281,17 @@ export function MushafReader({
                 <RNText style={styles.surahName}>{surahName}</RNText>
               ) : null}
             </View>
-            <ScrollView showsVerticalScrollIndicator={false} style={styles.pageBody} contentContainerStyle={{ paddingBottom: 70 }}>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              style={styles.pageBody}
+              contentContainerStyle={{ paddingBottom: 80 }}
+            >
               {item.verses.map(renderVerse)}
             </ScrollView>
             {index === lastPage && onNextSurah ? (
               <Pressable
                 onPress={onNextSurah}
-                style={[styles.nextBtn, { borderColor: colors.hairline, backgroundColor: colors.card }]}
+                style={[styles.nextBtn, { borderColor: 'rgba(242,235,216,0.22)', backgroundColor: 'rgba(255,255,255,0.06)' }]}
               >
                 <Text variant="bodySmall" font="arabicBold" color="primary">
                   {t('quran.nextSurah')} {rtl ? '‹' : '›'}
@@ -291,20 +308,9 @@ export function MushafReader({
         <Pressable onPress={() => scrollToPage(pageIndex - 1)} hitSlop={10} style={styles.footerBtn}>
           <Ionicons name={rtl ? 'chevron-forward' : 'chevron-back'} size={20} color={colors.textSecondary} />
         </Pressable>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
-          <Text variant="caption" font="uiBold" color="secondary">
-            {toArabicDigits(pageIndex + 1)} / {toArabicDigits(pages.length)}
-          </Text>
-          {onPlayPage ? (
-            <Pressable
-              onPress={() => onPlayPage(pages[pageIndex].verses[0].ayah)}
-              hitSlop={10}
-              style={[styles.footerBtn, isPlaying && { backgroundColor: colors.primarySoft }]}
-            >
-              <Ionicons name={isPlaying ? 'pause' : 'play'} size={18} color={isPlaying ? colors.primary : colors.textSecondary} />
-            </Pressable>
-          ) : null}
-        </View>
+        <Text variant="caption" font="uiBold" color="secondary">
+          {toArabicDigits(pageIndex + 1)} / {toArabicDigits(pages.length)}
+        </Text>
         <Pressable onPress={() => scrollToPage(pageIndex + 1)} hitSlop={10} style={styles.footerBtn}>
           <Ionicons name={rtl ? 'chevron-back' : 'chevron-forward'} size={20} color={colors.textSecondary} />
         </Pressable>
@@ -317,20 +323,22 @@ const styles = StyleSheet.create({
   probe: { position: 'absolute', opacity: 0, fontSize: FONT_SIZE, lineHeight: LINE_HEIGHT, fontFamily: 'Amiri_700Bold' },
   page: { flex: 1, paddingHorizontal: H_PADDING },
   pageHead: { height: 44, justifyContent: 'center', alignItems: 'center' },
-  pageBody: { flex: 1, justifyContent: 'flex-start' },
-  bismillah: { fontSize: 27, lineHeight: 44, color: '#8B7355', fontFamily: 'Amiri_700Bold' },
-  surahName: { fontSize: 24, lineHeight: 40, color: '#8B7355', fontFamily: 'Amiri_700Bold' },
+  pageBody: { flex: 1 },
+  bismillah: { fontSize: 27, lineHeight: 44, color: '#B39B7D', fontFamily: 'Amiri_700Bold' },
+  surahName: { fontSize: 24, lineHeight: 40, color: '#B39B7D', fontFamily: 'Amiri_700Bold' },
   ayahSpan: {
     fontSize: FONT_SIZE,
     lineHeight: LINE_HEIGHT,
     fontFamily: 'Amiri_700Bold',
-    textAlign: 'justify',
+    color: PAGE_TEXT,
+    textAlign: 'right',
     direction: 'rtl',
     borderRadius: 4,
     paddingHorizontal: 1,
+    marginBottom: 4,
   },
-  marker: { fontSize: 22, lineHeight: LINE_HEIGHT, color: '#8B7355' },
-  wordTap: { borderBottomWidth: 1, borderBottomColor: 'rgba(139,115,85,0.45)', paddingHorizontal: 1 },
+  marker: { fontSize: 22, lineHeight: LINE_HEIGHT, color: '#B39B7D' },
+  wordTap: { borderBottomWidth: 1, borderBottomColor: 'rgba(242,235,216,0.4)', paddingHorizontal: 1, color: PAGE_TEXT },
   footer: {
     position: 'absolute',
     left: 0,
