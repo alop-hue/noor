@@ -20,7 +20,7 @@ import { getAyahs, getSurah, getSurahTranslations, getTafsir, type AyahRow, type
 import { getMemorizedSurah, getNote, isAyahBookmarked, isAyahMemorized, saveNote, toggleAyahBookmark, toggleAyahMemorized } from '@/db/userdb';
 import { colorizeWords, splitWords } from '@/features/quran/tajweed';
 import { arabicSurahName, surahDisplayName } from '@/features/quran/surahNames';
-import { playSurah, playWord, RECITERS, startMemorizeRange, stopMemorize, subscribeToPlayer, togglePlayPause, type PlayerStatus } from '@/services/audio';
+import { playAyah, playSurah, playWord, RECITERS, startMemorizeRange, stopMemorize, subscribeToPlayer, togglePlayPause, type PlayerStatus } from '@/services/audio';
 import { useSettings } from '@/store/settings';
 import { useTheme } from '@/theme/ThemeContext';
 import { radius, space } from '@/theme/tokens';
@@ -309,7 +309,9 @@ export default function ReaderScreen() {
         }}
         onPressWord={(ayah, word) => {
           void playWord(surahId, ayah, word).then((ok) => {
-            if (!ok) void playSurah(surahId, ayah);
+            // If the word track is unavailable, play the ayah itself — but never
+            // let this turn into full-surah playback that auto-advances.
+            if (!ok) void playAyah(surahId, ayah);
           });
         }}
         onLongPressAyah={(ayah) => {

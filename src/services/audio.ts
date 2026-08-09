@@ -109,10 +109,19 @@ export async function initAudioMode(): Promise<void> {
   });
 }
 
-export async function playSurah(surah: number, fromAyah?: number): Promise<void> {
+async function waitForDuration(p: AudioPlayer, timeoutMs = 6000): Promise<number> {
+  const t0 = Date.now();
+  while (Date.now() - t0 < timeoutMs) {
+    if (p.duration > 0) return p.duration;
+    await new Promise((r) => setTimeout(r, 60));
+  }
+  return p.duration;
+}
+
+async function playSurahMode(surah: number, fromAyah: number | undefined, mode: 'surah' | 'word'): Promise<void> {
   const { reciterId } = useSettings.getState().audio;
   memorize = null;
-  playMode = 'surah';
+  playMode = mode;
   currentSurah = surah;
   await initAudioMode();
   const p = getPlayer();
@@ -123,13 +132,32 @@ export async function playSurah(surah: number, fromAyah?: number): Promise<void>
     p.replace({ uri: source });
     p.setPlaybackRate(rate);
     if (fromAyah && fromAyah > 1) {
-      const ayahs = Math.max(1, fromAyah - 1);
-      await p.seekTo((ayahs - 1) * 25);
+      // Seek by rough per-ayah duration, but NEVER past the end of the file:
+      // seeking beyond the end instantly finishes the track, which used to
+      // trigger an unwanted gapless jump to the next surah. If the duration
+      // is unknown, play from the start instead of risking an overshoot.
+      const dur = await waitForDuration(p);
+      if (dur > 0) {
+        await p.seekTo(Math.min((fromAyah - 2) * 25, Math.max(0, dur - 2)));
+      }
     }
     p.play();
   } catch (e) {
     console.warn('playSurah failed', e);
   }
+}
+
+export async function playSurah(surah: number, fromAyah?: number): Promise<void> {
+  return playSurahMode(surah, fromAyah, 'surah');
+}
+
+/**
+ * Play the surah file starting at an ayah, but treat it like word-level audio:
+ * when it finishes it must NEVER auto-advance (no repeat, no gapless).
+ * Used as the fallback when a word-level track is unavailable.
+ */
+export async function playAyah(surah: number, ayah: number): Promise<void> {
+  return playSurahMode(surah, ayah, 'word');
 }
 
 export function togglePlayPause(): void {
