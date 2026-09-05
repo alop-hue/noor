@@ -421,7 +421,7 @@ const tr: Translation = {
     thanks: 'Teşekkürler!',
     thanksMessage: 'Geri bildiriminiz hazırlandı. E-posta uygulamanız açılarak gönderilecek.',
     error: 'E-posta açılamadı',
-    errorMessage: 'E-posta uygulaması bulunamadı. Lütfen manuel olarak noor.quran.app@gmail.com adresine gönderin',
+    errorMessage: 'E-posta uygulaması bulunamadı. Lütfen manuel olarak alopesclop13@gmail.com adresine gönderin',
   },
 
   features: {

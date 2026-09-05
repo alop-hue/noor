@@ -421,7 +421,7 @@ const ur: Translation = {
     thanks: 'شکریہ!',
     thanksMessage: 'آپ کی رائے تیار ہو گئی ہے۔ آپ کی ایمیل ایپ بھیجنے کے لیے کھلے گی۔',
     error: 'ایمیل نہیں کھولا جا سکا',
-    errorMessage: 'کوئی ایمیل ایپ نہیں ملی۔ براہ کرم دستی طور پر noor.quran.app@gmail.com پر بھیجیں',
+    errorMessage: 'کوئی ایمیل ایپ نہیں ملی۔ براہ کرم دستی طور پر alopesclop13@gmail.com پر بھیجیں',
   },
 
   features: {

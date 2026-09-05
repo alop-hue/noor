@@ -419,7 +419,7 @@ const en = {
     thanks: 'Thank you!',
     thanksMessage: 'Your feedback has been prepared. Your email app will open to send it.',
     error: 'Could not open email',
-    errorMessage: 'No email app found. Please send manually to noor.quran.app@gmail.com',
+    errorMessage: 'No email app found. Please send manually to alopesclop13@gmail.com',
   },
 
   features: {

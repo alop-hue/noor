@@ -421,7 +421,7 @@ const fr: Translation = {
     thanks: 'Merci!',
     thanksMessage: 'Votre commentaire a été préparé. Votre application de messagerie s\'ouvrira pour l\'envoyer.',
     error: 'Impossible d\'ouvrir l\'email',
-    errorMessage: 'Aucune application de messagerie trouvée. Veuillez envoyer manuellement à noor.quran.app@gmail.com',
+    errorMessage: 'Aucune application de messagerie trouvée. Veuillez envoyer manuellement à alopesclop13@gmail.com',
   },
 
   features: {

@@ -421,7 +421,7 @@ const id: Translation = {
     thanks: 'Terima kasih!',
     thanksMessage: 'Masukan Anda telah disiapkan. Aplikasi email Anda akan terbuka untuk mengirimnya.',
     error: 'Tidak dapat membuka email',
-    errorMessage: 'Aplikasi email tidak ditemukan. Harap kirim manual ke noor.quran.app@gmail.com',
+    errorMessage: 'Aplikasi email tidak ditemukan. Harap kirim manual ke alopesclop13@gmail.com',
   },
 
   features: {

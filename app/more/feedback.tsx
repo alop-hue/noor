@@ -10,7 +10,7 @@ import { Button, Text } from '@/components/ui';
 import { useTheme } from '@/theme/ThemeContext';
 import { radius, space } from '@/theme/tokens';
 
-const FEEDBACK_EMAIL = 'noor.quran.app@gmail.com';
+const FEEDBACK_EMAIL = 'alopesclop13@gmail.com';
 
 export default function FeedbackScreen() {
   const { t } = useTranslation();

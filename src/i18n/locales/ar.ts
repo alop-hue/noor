@@ -421,7 +421,7 @@ const ar: Translation = {
     thanks: 'شكرًا لك!',
     thanksMessage: 'تم تجهيز ملاحظاتك. سيُفتح تطبيق البريد الإلكتروني لإرسالها.',
     error: 'تعذّر فتح البريد',
-    errorMessage: 'لم يُعثر على تطبيق بريد. أرسل يدويًا إلى noor.quran.app@gmail.com',
+    errorMessage: 'لم يُعثر على تطبيق بريد. أرسل يدويًا إلى alopesclop13@gmail.com',
   },
 
   features: {

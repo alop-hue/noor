@@ -421,7 +421,7 @@ const de: Translation = {
     thanks: 'Danke!',
     thanksMessage: 'Dein Feedback wurde vorbereitet. Deine E-Mail-App wird geöffnet, um es zu senden.',
     error: 'E-Mail konnte nicht geöffnet werden',
-    errorMessage: 'Keine E-Mail-App gefunden. Bitte sende manuell an noor.quran.app@gmail.com',
+    errorMessage: 'Keine E-Mail-App gefunden. Bitte sende manuell an alopesclop13@gmail.com',
   },
 
   features: {
