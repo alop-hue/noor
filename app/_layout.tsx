@@ -22,6 +22,15 @@ function i18nKeyToLabel(name: string): string {
   return i18n.exists(`prayer.${name}`) ? i18n.t(`prayer.${name}`) : name;
 }
 
+function applyRtl(lang: string | null) {
+  I18nManager.allowRTL(true);
+  if (lang && isRtl(lang)) {
+    I18nManager.forceRTL(true);
+  } else {
+    I18nManager.forceRTL(false);
+  }
+}
+
 function GateScreen({ gate, retry }: { gate: Exclude<GateState, 'ready'>; retry: () => void }) {
   const { colors } = useTheme();
   return (
@@ -47,8 +56,10 @@ function GateScreen({ gate, retry }: { gate: Exclude<GateState, 'ready'>; retry:
 
 function AppShell() {
   const { colors } = useTheme();
+  const language = useSettings((s) => s.language);
+  const rtl = language ? isRtl(language) : false;
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+    <View style={{ flex: 1, backgroundColor: colors.bg, direction: rtl ? 'rtl' : 'ltr' }}>
       <StatusBar style={colors.mode === 'light' ? 'dark' : 'light'} />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
@@ -71,6 +82,8 @@ function AppShell() {
         <Stack.Screen name="more/feedback" />
         <Stack.Screen name="more/legal" options={{ presentation: 'modal' }} />
         <Stack.Screen name="tools/wird" />
+        <Stack.Screen name="tools/fatawa" />
+        <Stack.Screen name="tools/zakat" />
       </Stack>
     </View>
   );
@@ -80,8 +93,15 @@ function Providers() {
   const theme = useSettings((s) => s.theme);
   const setTheme = useSettings((s) => s.setTheme);
   const language = useSettings((s) => s.language);
-  const [gate, setGate] = useState<GateState>('unpacking');
+  const [gate, setGate] = useState<GateState>(() => {
+    applyRtl(language);
+    return 'unpacking';
+  });
   const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    applyRtl(language);
+  }, [language]);
 
   useEffect(() => {
     installErrorListener();
@@ -89,8 +109,7 @@ function Providers() {
     (async () => {
       try {
         await initI18n(language);
-        I18nManager.allowRTL(true);
-        if (language && isRtl(language)) I18nManager.forceRTL(true);
+        applyRtl(language);
         if (!cancelled) setGate('indexing');
         await ensureDatabase();
         await setupNotificationChannels();

@@ -203,6 +203,10 @@ const de: Translation = {
     names99Hint: 'Die schönen Namen Allahs mit Bedeutung',
     names99Search: 'Name oder Bedeutung suchen…',
     names99Meaning: 'Bedeutung',
+    fatawa: 'Fatwas',
+    fatawaHint: 'Halal- und Haram-Regeln',
+    zakat: 'Zakat-Rechner',
+    zakatHint: 'Berechnen Sie Ihren Zakat',
     tasbihCount: '{n}',
 
     editDhikr: 'Dhikr ändern',

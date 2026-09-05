@@ -203,6 +203,10 @@ const id: Translation = {
     names99Hint: 'Nama-nama Allah beserta artinya',
     names99Search: 'Cari nama atau arti…',
     names99Meaning: 'Arti',
+    fatawa: 'Fatwa',
+    fatawaHint: 'Hukum halal dan haram',
+    zakat: 'Kalkulator Zakat',
+    zakatHint: 'Hitung zakat Anda',
     tasbihCount: '{n}',
 
     editDhikr: 'Ubah zikir',

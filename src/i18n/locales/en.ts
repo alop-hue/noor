@@ -202,6 +202,10 @@ const en = {
     names99Search: 'Search name or meaning…',
     names99Meaning: 'Meaning',
     tasbihCount: '{n}',
+    fatawa: 'Fatawa',
+    fatawaHint: 'Halal & haram rulings',
+    zakat: 'Zakat Calculator',
+    zakatHint: 'Calculate your zakat obligation',
 
     editDhikr: 'Change dhikr',
     reset: 'Reset',

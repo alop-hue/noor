@@ -38,6 +38,7 @@ let lastStatus: PlayerStatus = {
   surah: null,
   memorize: null,
   startAyah: null,
+  currentWord: null,
 };
 
 export interface PlayerStatus {
@@ -49,6 +50,7 @@ export interface PlayerStatus {
   surah: number | null;
   memorize: MemorizeState | null;
   startAyah?: number | null;
+  currentWord?: number | null;
 }
 
 export interface MemorizeState {

@@ -11,7 +11,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import { radius, space } from '@/theme/tokens';
 
 export default function DhikrScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -19,6 +19,8 @@ export default function DhikrScreen() {
   const [active, setActive] = useState<string | null>(null);
   const [items, setItems] = useState<AdhkarRow[] | null>(null);
   const [counts, setCounts] = useState<Record<number, number>>({});
+  const isArabic = i18n.language.startsWith('ar');
+  const rtl = i18n.dir() === 'rtl';
 
   useEffect(() => {
     getAdhkarCategories().then(async (cats) => {
@@ -48,7 +50,7 @@ export default function DhikrScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
-      <View style={[styles.header, { backgroundColor: colors.bgElevated, borderBottomColor: colors.hairline }]}>
+      <View style={[styles.header, { backgroundColor: colors.bgElevated, borderBottomColor: colors.hairline, flexDirection: rtl ? 'row-reverse' : 'row' }]}>
         <Pressable onPress={() => router.back()} hitSlop={8}>
           <Ionicons name="chevron-back" size={24} color={colors.text} />
         </Pressable>
@@ -80,20 +82,20 @@ export default function DhikrScreen() {
                 onPress={() => bump(item.id, item.count)}
                 style={({ pressed }) => [styles.card, { backgroundColor: colors.card, borderColor: colors.hairline }, pressed && { opacity: 0.85 }]}
               >
-                <Text variant="body" font="arabicBold" style={{ color: colors.quranText, textAlign: 'right', lineHeight: 30 }}>
+                <Text variant="body" font="arabicBold" style={{ color: colors.quranText, textAlign: isArabic ? 'right' : 'center', direction: 'rtl', lineHeight: 30 }}>
                   {item.arabic}
                 </Text>
-                {item.transliteration ? (
+                {!isArabic && item.transliteration ? (
                   <Text variant="bodySmall" color="secondary" style={{ marginTop: space[2], fontStyle: 'italic' }}>
                     {item.transliteration}
                   </Text>
                 ) : null}
-                {item.translation ? (
+                {!isArabic && item.translation ? (
                   <Text variant="bodySmall" color="secondary" style={{ marginTop: 2 }}>
                     {item.translation}
                   </Text>
                 ) : null}
-                <View style={styles.cardFooter}>
+                <View style={[styles.cardFooter, rtl && { flexDirection: 'row-reverse' }]}>
                   <Text variant="caption" color="tertiary">
                     {t('dhikr.count', { n: item.count })} · {item.source}
                   </Text>

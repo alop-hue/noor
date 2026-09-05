@@ -65,6 +65,9 @@ export default function ReaderScreen() {
   const [hidden, setHidden] = useState<Set<number>>(new Set());
   const [focusAyah, setFocusAyah] = useState(targetAyah ?? 1);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [activeWord, setActiveWord] = useState<number | null>(null);
+  const [testMode, setTestMode] = useState(false);
+  const [revealed, setRevealed] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     (async () => {
@@ -155,9 +158,21 @@ export default function ReaderScreen() {
       const total = verses?.length ?? 0;
       const next = Math.min(Math.max(1, f + delta), Math.max(1, total));
       scrollToAyah(next);
+      if (testMode) {
+        setHidden((prev) => {
+          const n = new Set(prev);
+          n.add(next);
+          return n;
+        });
+        setRevealed((prev) => {
+          const n = new Set(prev);
+          n.delete(next);
+          return n;
+        });
+      }
       return next;
     });
-  }, [verses, scrollToAyah]);
+  }, [verses, scrollToAyah, testMode]);
 
   const memorizeActive = player.memorize?.surah === surahId;
 
@@ -201,8 +216,6 @@ export default function ReaderScreen() {
   const playingThis = player.surah === surahId && player.playing;
   const resumeFrom = lastRead && lastRead.surah === surahId ? lastRead.ayah : undefined;
   const startPlayback = () => playSurah(surahId, resumeFrom);
-  // Accurate reading ayah: playback may have started mid-surah (seeked), so the
-  // ayah is computed relative to the segment's starting ayah and elapsed time.
   const activeAyah =
     playingThis && player.startAyah
       ? Math.min(
@@ -210,6 +223,22 @@ export default function ReaderScreen() {
           player.startAyah + Math.floor(Math.max(0, player.currentTime - Math.max(0, (player.startAyah - 2) * 25)) / 25),
         )
       : null;
+
+  useEffect(() => {
+    if (!playingThis || activeAyah == null || !verses) {
+      setActiveWord(null);
+      return;
+    }
+    const verse = verses.find((v) => v.ayah.ayah === activeAyah);
+    if (!verse) { setActiveWord(null); return; }
+    const words = splitWords(verse.ayah.arabic);
+    if (words.length === 0) { setActiveWord(null); return; }
+    const ayahStartTime = Math.max(0, (activeAyah - 2) * 25);
+    const elapsed = Math.max(0, player.currentTime - ayahStartTime);
+    const progress = Math.min(1, elapsed / 25);
+    const wordIdx = Math.min(words.length - 1, Math.floor(progress * words.length));
+    setActiveWord(wordIdx);
+  }, [playingThis, activeAyah, player.currentTime, verses]);
 
   if (!surah || !verses) return <LoadingState label={t('common.loading')} />;
 
@@ -312,6 +341,8 @@ export default function ReaderScreen() {
         memorizeMode={memorizeMode}
         tajweed={tajweed}
         wordByWord={wordByWord}
+        activeWord={activeWord}
+        activeWordAyah={activeAyah}
         onPressAyah={(ayah) => {
           const v = verses.find((x) => x.ayah.ayah === ayah);
           if (v) void openSheet(v);
@@ -361,13 +392,22 @@ export default function ReaderScreen() {
             </Pressable>
             <View style={{ alignItems: 'center', flex: 1 }}>
               <Text variant="caption" font="uiBold">{t('memorize.ayahOf', { n: focusAyah, total: verses?.length ?? 0 })}</Text>
-              <Text variant="micro" color="tertiary">{t('memorize.tapHint')}</Text>
+              <Text variant="micro" color="tertiary">{testMode ? (isArabic ? 'اختبر نفسك' : 'Self-test mode') : t('memorize.tapHint')}</Text>
             </View>
             <Pressable onPress={() => moveFocus(1)} hitSlop={8} style={styles.iconBtn}>
               <Ionicons name="play-skip-forward" size={20} color={colors.text} />
             </Pressable>
           </View>
           <View style={styles.memorizeRow}>
+            <Pressable
+              onPress={() => setTestMode(!testMode)}
+              style={[styles.repeatChip, { borderColor: testMode ? colors.accent : colors.hairline, backgroundColor: testMode ? colors.accentSoft : colors.card, paddingHorizontal: space[3] }]}
+            >
+              <Ionicons name={testMode ? 'eye' : 'eye-off-outline'} size={14} color={testMode ? colors.accent : colors.textSecondary} />
+              <Text variant="micro" font="uiBold" color={testMode ? 'primary' : 'secondary'}>
+                {testMode ? (isArabic ? 'إظهار' : 'Reveal') : (isArabic ? 'اختبر' : 'Test')}
+              </Text>
+            </Pressable>
             <Button title={t('memorize.playThis')} variant="secondary" style={{ flex: 1 }} onPress={() => void startMemorizeRange(surahId, focusAyah, focusAyah, audio.memorizeRepeat)} />
             <Button title={t('memorize.playRange')} variant="secondary" style={{ flex: 1 }} onPress={() => void startMemorizeRange(surahId, focusAyah, Math.min(focusAyah + 9, verses?.length ?? focusAyah), audio.memorizeRepeat)} />
             {memorizeActive && <Button title={t('memorize.stop')} variant="ghost" onPress={stopMemorize} />}

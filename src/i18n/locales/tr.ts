@@ -203,6 +203,10 @@ const tr: Translation = {
     names99Hint: 'Allah\u0027ın güzel isimleri ve anlamları',
     names99Search: 'İsim veya anlam ara…',
     names99Meaning: 'Anlam',
+    fatawa: 'Fetvalar',
+    fatawaHint: 'Helal ve haram hükümleri',
+    zakat: 'Zekat Hesaplama',
+    zakatHint: 'Zekatınızı hesaplayın',
     tasbihCount: '{n}',
 
     editDhikr: 'Zikri değiştir',

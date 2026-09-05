@@ -20,6 +20,8 @@ export default function ToolsTab() {
     { icon: 'sparkles-outline', label: t('tools.dhikr'), hint: t('tools.dhikrHint'), route: '/tools/dhikr' },
     { icon: 'calendar-outline', label: t('tools.calendar'), hint: t('tools.calendarHint'), route: '/tools/calendar' },
     { icon: 'location-outline', label: t('tools.mosque'), hint: t('tools.mosqueHint'), route: '/tools/mosque' },
+    { icon: 'book-outline', label: t('tools.fatawa'), hint: t('tools.fatawaHint'), route: '/tools/fatawa' },
+    { icon: 'calculator-outline', label: t('tools.zakat'), hint: t('tools.zakatHint'), route: '/tools/zakat' },
     { icon: 'sparkles', label: t('tools.names99'), hint: t('tools.names99Hint'), route: '/tools/names99' },
   ] as const;
 

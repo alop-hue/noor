@@ -16,11 +16,14 @@ import { radius, space } from '@/theme/tokens';
 interface Mosque {
   id: string;
   name: string;
+  nameAr?: string;
   lat: number;
   lng: number;
   distanceKm: number;
   mine?: boolean;
   userId?: number;
+  denomination?: string;
+  openingHours?: string;
 }
 
 interface OverpassElem {
@@ -37,26 +40,29 @@ const OVERPASS_MIRRORS = [
   'https://overpass.osm.ch/api/interpreter',
 ];
 
-const RADII = [1, 3, 10] as const;
+const RADII = [1, 3, 5, 10, 25] as const;
 
 const MOSQUE_QUERY = (lat: number, lng: number, radiusM: number) =>
-  `[out:json][timeout:15];(node["amenity"="place_of_worship"]["religion"="muslim"](around:${radiusM},${lat},${lng}););out tags;`;
+  `[out:json][timeout:20];(node["amenity"="place_of_worship"]["religion"="muslim"](around:${radiusM},${lat},${lng});way["amenity"="place_of_worship"]["religion"="muslim"](around:${radiusM},${lat},${lng});relation["amenity"="place_of_worship"]["religion"="muslim"](around:${radiusM},${lat},${lng}););out center tags;`;
 
 export default function MosqueScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { prayer } = useSettings();
+  const rtl = i18n.dir() === 'rtl';
+  const isArabic = i18n.language.startsWith('ar');
   const [state, setState] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle');
   const [mosques, setMosques] = useState<Mosque[]>([]);
-  const [radiusKm, setRadiusKm] = useState<(typeof RADII)[number]>(3);
+  const [radiusKm, setRadiusKm] = useState<(typeof RADII)[number]>(5);
   const [addOpen, setAddOpen] = useState(false);
   const [name, setName] = useState('');
   const [newCoords, setNewCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [selectedMosque, setSelectedMosque] = useState<Mosque | null>(null);
 
   const useMyLocation = async () => {
     setLocating(true);
@@ -142,17 +148,29 @@ export default function MosqueScreen() {
       if (!json) throw new Error('all overpass mirrors failed');
       const raw = (json.elements ?? []) as OverpassElem[];
       const overpass: Mosque[] = raw
-        .filter((e) => !!(e.tags && (e.tags.name || e.tags['name:en'])))
-        .map((e) => ({
-          id: `o${e.id}`,
-          name: e.tags['name:en'] || e.tags.name || t('mosque.name'),
-          lat: e.lat,
-          lng: e.lon,
-          distanceKm: km(coords.lat, coords.lng, e.lat, e.lon),
-          mine: false,
-        }))
+        .filter((e) => !!(e.tags && (e.tags.name || e.tags['name:en'] || e.tags['name:ar'])))
+        .reduce<Mosque[]>((acc, e) => {
+          const centerLat = e.lat ?? (e as any).center?.lat;
+          const centerLng = e.lon ?? (e as any).center?.lon;
+          if (!centerLat || !centerLng) return acc;
+          const displayName = isArabic
+            ? (e.tags['name:ar'] || e.tags.name || e.tags['name:en'] || t('mosque.name'))
+            : (e.tags['name:en'] || e.tags.name || e.tags['name:ar'] || t('mosque.name'));
+          acc.push({
+            id: `o${e.id}`,
+            name: displayName,
+            nameAr: e.tags['name:ar'] || e.tags.name,
+            lat: centerLat,
+            lng: centerLng,
+            distanceKm: km(coords.lat, coords.lng, centerLat, centerLng),
+            mine: false,
+            denomination: e.tags.denomination,
+            openingHours: e.tags.opening_hours,
+          });
+          return acc;
+        }, [])
         .filter((m) => Number.isFinite(m.distanceKm))
-        .sort((a: Mosque, b: Mosque) => a.distanceKm - b.distanceKm)
+        .sort((a, b) => a.distanceKm - b.distanceKm)
         .slice(0, 50);
       const mine = (await getUserMosques())
         .map((m): Mosque => ({

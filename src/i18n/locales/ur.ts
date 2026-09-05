@@ -203,6 +203,10 @@ const ur: Translation = {
     names99Hint: 'اللہ کے نام اور ان کے معانی',
     names99Search: 'نام یا معنی تلاش کریں…',
     names99Meaning: 'معنی',
+    fatawa: 'فتاوى',
+    fatawaHint: 'حلال و حرام احکام',
+    zakat: 'زکاة کیلکولیٹر',
+    zakatHint: 'اپنی زکاة کا حساب لگائیں',
     tasbihCount: '{n}',
 
     editDhikr: 'ذکر تبدیل کریں',

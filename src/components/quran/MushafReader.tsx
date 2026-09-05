@@ -42,6 +42,8 @@ interface Props {
   onToggleHidden?: (ayah: number) => void;
   onPageChange: (ayah: number) => void;
   onNextSurah?: () => void;
+  activeWord?: number | null;
+  activeWordAyah?: number | null;
 }
 
 const FONT_SIZE = 36;
@@ -80,6 +82,8 @@ export function MushafReader({
   onToggleHidden,
   onPageChange,
   onNextSurah,
+  activeWord,
+  activeWordAyah,
 }: Props) {
   const { colors } = useTheme();
   const { t, i18n } = useTranslation();
@@ -171,6 +175,7 @@ export function MushafReader({
     const isActive = activeAyah === v.ayah;
     const isFocus = memorizeMode && focusAyah === v.ayah;
     const isHidden = hiddenAyahs?.has(v.ayah) ?? false;
+    const isWordActive = activeWordAyah === v.ayah && activeWord != null;
     const bg = isActive
       ? 'rgba(201,162,39,0.28)'
       : isFocus
@@ -245,18 +250,22 @@ export function MushafReader({
     if (spans) {
       return (
         <RNText key={v.ayah} style={base} {...pressProps}>
-          {spans.map((word, i) =>
-            word.map((span, j) => (
+          {spans.map((word, i) => {
+            const isHighlighted = isWordActive && i === activeWord;
+            return word.map((span, j) => (
               <RNText
                 key={`${i}-${j}`}
                 style={{
                   color: span.color === 'default' ? PAGE_TEXT : TAJWEED[span.color],
+                  backgroundColor: isHighlighted ? 'rgba(201,162,39,0.4)' : 'transparent',
+                  borderRadius: 3,
+                  paddingHorizontal: isHighlighted ? 1 : 0,
                 }}
               >
                 {span.text}{' '}
               </RNText>
-            )),
-          )}
+            ));
+          })}
           {v.sajda === 1 ? <RNText style={{ color: '#D4AF37' }}> ۩ </RNText> : null}
           {verseMarker}
         </RNText>
@@ -264,7 +273,22 @@ export function MushafReader({
     }
     return (
       <RNText key={v.ayah} style={base} {...pressProps}>
-        <RNText style={{ color: PAGE_TEXT }}>{v.arabic}</RNText>
+        {words.map((word, i) => {
+          const isHighlighted = isWordActive && i === activeWord;
+          return (
+            <RNText
+              key={i}
+              style={{
+                color: PAGE_TEXT,
+                backgroundColor: isHighlighted ? 'rgba(201,162,39,0.4)' : 'transparent',
+                borderRadius: 3,
+                paddingHorizontal: isHighlighted ? 1 : 0,
+              }}
+            >
+              {word}{' '}
+            </RNText>
+          );
+        })}
         {v.sajda === 1 ? <RNText style={{ color: '#D4AF37' }}> ۩ </RNText> : null}
         {verseMarker}
       </RNText>

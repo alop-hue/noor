@@ -98,7 +98,9 @@ export default function HadithBookScreen() {
               </View>
             ) : null
           }
-          renderItem={({ item }) => (
+          renderItem={({ item }) => {
+            const gi = gradeInfo(item.grade);
+            return (
             <Pressable
               onPress={() => openHadith(item)}
               style={({ pressed }) => [styles.row, { borderBottomColor: colors.hairline }, pressed && { backgroundColor: colors.bgSunken }]}
@@ -107,22 +109,27 @@ export default function HadithBookScreen() {
                 <Text variant="caption" font="uiBold" color="primary">
                   {item.chapter || item.book_slug} {item.number > 0 ? `· ${item.number}` : ''}
                 </Text>
-                {item.grade ? (
+                {gi ? (
+                  <View style={[styles.gradeChip, { backgroundColor: gi.bg, borderColor: gi.color + '40' }]}>
+                    <Ionicons name={gi.icon} size={11} color={gi.color} />
+                    <Text variant="micro" font="uiBold" style={{ color: gi.color }}>{gi.label}</Text>
+                  </View>
+                ) : item.grade ? (
                   <Text variant="micro" color="tertiary" numberOfLines={1} style={{ maxWidth: '60%' }}>
                     {item.grade}
                   </Text>
                 ) : null}
               </View>
-              <Text variant="bodySmall" font="arabicBold" style={{ color: colors.quranText, textAlign: 'right', marginTop: space[2] }}>
+              <Text variant="bodySmall" font="arabicBold" style={{ color: colors.quranText, textAlign: isArabic ? 'left' : 'right', marginTop: space[2] }}>
                 {item.arabic}
               </Text>
               {!isArabic ? (
-                <Text variant="bodySmall" color="secondary" numberOfLines={4} style={{ marginTop: space[2] }}>
+                <Text variant="bodySmall" color="secondary" numberOfLines={2} style={{ marginTop: space[2] }}>
                   {item.english}
                 </Text>
               ) : null}
             </Pressable>
-          )}
+          );}}
         />
       )}
 
@@ -145,6 +152,24 @@ export default function HadithBookScreen() {
   );
 }
 
+function gradeInfo(grade: string): { color: string; bg: string; icon: keyof typeof Ionicons.glyphMap; label: string; descEn: string; descAr: string } | null {
+  if (!grade) return null;
+  const g = grade.toLowerCase();
+  if (g.includes('sahih') || g.includes('authentic') || g.includes('صحيح'))
+    return { color: '#16a34a', bg: '#dcfce7', icon: 'checkmark-circle', label: 'Sahih', descEn: 'Authentic – chain of narrators is unbroken and reliable', descAr: 'صحيح – سند المتصل والثقة' };
+  if (g.includes('hasan') || g.includes('حسن'))
+    return { color: '#2563eb', bg: '#dbeafe', icon: 'shield-checkmark', label: 'Hasan', descEn: 'Good – slight weakness in narration but still acceptable', descAr: 'حسن – ضعف خفيف في السند لكنه مقبول' };
+  if (g.includes('da\'eef') || g.includes('weak') || g.includes('ضعيف'))
+    return { color: '#d97706', bg: '#fef3c7', icon: 'warning', label: 'Da\'eef', descEn: 'Weak – narrators have issues; use with caution', descAr: 'ضعيف – فيه ناقلون مشكلون؛ استخدم بحذر' };
+  if (g.includes('mawdu') || g.includes('fabricat') || g.includes('munkar') || g.includes('موضوع') || g.includes('منكر'))
+    return { color: '#dc2626', bg: '#fee2e2', icon: 'close-circle', label: 'Mawdu\'', descEn: 'Fabricated – not from the Prophet ﷺ; reject entirely', descAr: 'موضوع – ليس من النبي ﷺ؛ ارفضه تماماً' };
+  if (g.includes('marfu') || g.includes('elevated') || g.includes('مرفوع'))
+    return { color: '#7c3aed', bg: '#ede9fe', icon: 'arrow-up-circle', label: 'Marfu\'', descEn: 'Elevated – reliably attributed to the Prophet ﷺ', descAr: 'مرفوع – مرفوع إلى النبي ﷺ بسند صحيح' };
+  if (g.includes('mawquf') || g.includes('stopped') || g.includes('موقوف'))
+    return { color: '#6b7280', bg: '#f3f4f6', icon: 'pause-circle', label: 'Mawquf', descEn: 'Stopped – attributed to a Companion, not directly to the Prophet ﷺ', descAr: 'موقوف – منسوب إلى صحابي وليس مباشرة للنبي ﷺ' };
+  return null;
+}
+
 function HadithSheet({
   visible, hadith, onClose, bookmarked, onToggleBookmark, onCopy, onShare, isArabic, t, colors,
 }: {
@@ -160,6 +185,7 @@ function HadithSheet({
   colors: ReturnType<typeof useTheme>['colors'];
 }) {
   const insets = useSafeAreaInsets();
+  const gi = gradeInfo(hadith?.grade ?? '');
   return (
     <ResizableSheet visible={visible} onClose={onClose}>
       {hadith && (
@@ -176,7 +202,17 @@ function HadithSheet({
                   {hadith.english}
                 </Text>
               ) : null}
-              {hadith.grade ? (
+              {gi ? (
+                <View style={[styles.gradeCard, { backgroundColor: gi.bg, borderColor: gi.color + '40' }]}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Ionicons name={gi.icon} size={18} color={gi.color} />
+                    <Text variant="bodySmall" font="uiBold" style={{ color: gi.color }}>{gi.label} – {hadith.grade}</Text>
+                  </View>
+                  <Text variant="caption" style={{ color: gi.color + 'cc', marginTop: 4 }}>
+                    {isArabic ? gi.descAr : gi.descEn}
+                  </Text>
+                </View>
+              ) : hadith.grade ? (
                 <Text variant="caption" color="tertiary" style={{ marginTop: space[3] }}>
                   {t('hadith.grade')}: {hadith.grade}
                 </Text>
@@ -222,4 +258,6 @@ const styles = StyleSheet.create({
   rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   actions: { flexDirection: 'row', justifyContent: 'space-around', marginTop: space[5], paddingTop: space[4], borderTopWidth: StyleSheet.hairlineWidth * 2 },
   actionBtn: { alignItems: 'center', gap: 4 },
+  gradeChip: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, borderWidth: 1 },
+  gradeCard: { marginTop: space[3], padding: space[3], borderRadius: 10, borderWidth: 1 },
 });

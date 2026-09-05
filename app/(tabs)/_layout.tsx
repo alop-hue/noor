@@ -1,18 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { I18nManager, StyleSheet, View } from 'react-native';
 
 import { MiniPlayer } from '@/components/audio/MiniPlayer';
 import { useSettings } from '@/store/settings';
 import { useTheme } from '@/theme/ThemeContext';
 
 export default function TabsLayout() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   void useSettings((s) => s.language);
+  const rtl = i18n.dir() === 'rtl';
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+    <View style={{ flex: 1, backgroundColor: colors.bg, direction: rtl ? 'rtl' : 'ltr' }}>
       <Tabs
       screenOptions={{
         headerShown: false,
@@ -20,9 +21,10 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: colors.textTertiary,
         tabBarStyle: [
           styles.tabBar,
-          { backgroundColor: colors.bgElevated, borderTopColor: colors.hairline },
+          { backgroundColor: colors.bgElevated, borderTopColor: colors.hairline, direction: rtl ? 'rtl' : 'ltr' },
         ],
-        tabBarLabelStyle: styles.label,
+        tabBarLabelStyle: [styles.label, rtl && { writingDirection: 'rtl' }],
+        tabBarIconStyle: rtl ? { transform: [{ scaleX: -1 }] } : undefined,
       }}
     >
       <Tabs.Screen

@@ -203,6 +203,10 @@ const ar: Translation = {
     names99Hint: 'أسماء الله الحسنى ومعانيها',
     names99Search: 'ابحث عن الاسم أو المعنى…',
     names99Meaning: 'المعنى',
+    fatawa: 'فتاوى',
+    fatawaHint: 'أحكام الحلال والحرام',
+    zakat: 'حاسبة الزكاة',
+    zakatHint: 'احسب زكاتك',
     tasbihCount: '{n}',
 
     editDhikr: 'تغيير الذكر',
