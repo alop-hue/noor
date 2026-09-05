@@ -58,7 +58,23 @@ export default function MoreTab() {
         right={<Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />}
       />
 
+      <SectionLabel>{t('wird.title')}</SectionLabel>
+      <ListRow
+        icon={<Ionicons name="today-outline" size={20} color={colors.primary} />}
+        title={t('wird.title')}
+        subtitle={t('wird.subtitle')}
+        onPress={() => router.push('/tools/wird')}
+        right={<Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />}
+      />
+
       <SectionLabel>{t('settings.legal')}</SectionLabel>
+      <ListRow
+        icon={<Ionicons name="chatbubble-ellipses-outline" size={20} color={colors.primary} />}
+        title={t('feedback.title')}
+        subtitle={t('feedback.subtitle')}
+        onPress={() => router.push('/more/feedback')}
+        right={<Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />}
+      />
       <ListRow
         icon={<Ionicons name="pulse-outline" size={20} color={colors.primary} />}
         title={t('settings.diagnostics')}

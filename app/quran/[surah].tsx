@@ -119,13 +119,14 @@ export default function ReaderScreen() {
   }, []);
 
   const copyVerse = async (v: LoadedVerse) => {
-    const surahName = surah?.english_name ?? '';
-    const text = `${v.ayah.arabic}\n\n${v.translation}\n\n— ${surahName} ${v.ayah.ayah}`;
+    const name = isArabic ? (arabicSurahName(surahId) || (surah?.name ?? '')) : (surah?.english_name ?? '');
+    const text = `${v.ayah.arabic}\n\n${v.translation}\n\n— ${name} ${v.ayah.ayah}`;
     await Clipboard.setString(text);
   };
 
   const shareVerse = async (v: LoadedVerse) => {
-    const text = `${v.ayah.arabic}\n${v.translation}\n— ${surah?.english_name} ${v.ayah.ayah}`;
+    const name = isArabic ? (arabicSurahName(surahId) || (surah?.name ?? '')) : (surah?.english_name ?? '');
+    const text = `${v.ayah.arabic}\n${v.translation}\n— ${name} ${v.ayah.ayah}`;
     await Share.share({ message: text });
   };
 
@@ -223,11 +224,11 @@ export default function ReaderScreen() {
           </Pressable>
           <View style={{ alignItems: 'center', flex: 1 }}>
             <Text variant="subheading" font="arabicBold">
-              {i18n.language.startsWith('ar') ? (arabicSurahName(surahId) || surah.name) : surah.name}
+              {isArabic ? (arabicSurahName(surahId) || surah.name) : surah.name}
             </Text>
             <Text variant="caption" color="secondary">
-              {i18n.language.startsWith('ar')
-                ? `${t(`quran.${surah.type === 'Meccan' ? 'meccan' : 'medinan'}`)} · ${surah.ayahs}`
+              {isArabic
+                ? `${t(`quran.${surah.type === 'Meccan' ? 'meccan' : 'medinan'}`)} · ${surah.ayahs} ${t('quran.verses', { n: '' }).trim()}`
                 : `${surah.english_name} · ${t(`quran.${surah.type === 'Meccan' ? 'meccan' : 'medinan'}`)} · ${surah.ayahs}`}
             </Text>
           </View>
@@ -303,7 +304,7 @@ export default function ReaderScreen() {
 
       <MushafReader
         surahId={surahId}
-        surahName={i18n.language.startsWith('ar') ? (arabicSurahName(surahId) || surah.name) : surah.name}
+        surahName={isArabic ? (arabicSurahName(surahId) || surah.name) : surah.name}
         verses={verses.map((v) => ({ ayah: v.ayah.ayah, arabic: v.ayah.arabic, sajda: v.ayah.sajda }))}
         showBismillah={showBismillah}
         activeAyah={activeAyah}
@@ -540,7 +541,7 @@ function VerseSheet({
                 <ActionBtn icon="share-outline" label={t('common.share')} onPress={onShare} colors={colors} />
               </View>
               <Text variant="caption" color="tertiary" style={{ textAlign: 'center', marginTop: space[4] }}>
-                {surah?.english_name} {t('quran.verseNumber')} {verse.ayah.ayah} · {t('quran.juzShort', { n: verse.ayah.juz })} · {t('quran.page')} {verse.ayah.page}
+                {isArabic ? `${surah?.name}` : surah?.english_name} {t('quran.verseNumber')} {verse.ayah.ayah} · {t('quran.juzShort', { n: verse.ayah.juz })} · {t('quran.page')} {verse.ayah.page}
               </Text>
             </ScrollView>
           </>

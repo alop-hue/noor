@@ -44,6 +44,18 @@ export interface LastRead {
   timestamp: number;
 }
 
+export type WirdGoal = 'pages' | 'juz' | 'surahs';
+
+export interface DailyWird {
+  enabled: boolean;
+  goal: WirdGoal;
+  target: number;
+  completed: number;
+  lastDate: string;
+  totalPages: number;
+  streak: number;
+}
+
 export const DEFAULT_METHOD = 'MuslimWorldLeague';
 
 export const LANG_EDITIONS: Record<string, string> = {
@@ -77,6 +89,7 @@ interface SettingsState {
   tasbihTarget: number;
   tasbihDhikr: string;
   lastRead: LastRead | null;
+  dailyWird: DailyWird;
   onBoarded: boolean;
   setTheme: (t: ThemePreference) => void;
   setLanguage: (l: AppLang) => void;
@@ -92,6 +105,7 @@ interface SettingsState {
   setTasbihTarget: (n: number) => void;
   setTasbihDhikr: (s: string) => void;
   setLastRead: (surah: number, ayah: number) => void;
+  setDailyWird: (w: Partial<DailyWird>) => void;
   setOnBoarded: (v: boolean) => void;
   reset: () => void;
 }
@@ -120,6 +134,7 @@ export const useSettings = create<SettingsState>()(
       tasbihTarget: 33,
       tasbihDhikr: 'سُبْحَانَ الله',
       lastRead: null,
+      dailyWird: { enabled: false, goal: 'pages', target: 4, completed: 0, lastDate: '', totalPages: 0, streak: 0 },
       onBoarded: false,
       setTheme: (theme) => set({ theme }),
       setLanguage: (language) =>
@@ -149,6 +164,7 @@ export const useSettings = create<SettingsState>()(
       setTasbihTarget: (tasbihTarget) => set({ tasbihTarget }),
       setTasbihDhikr: (tasbihDhikr) => set({ tasbihDhikr }),
       setLastRead: (surah, ayah) => set({ lastRead: { surah, ayah, timestamp: Date.now() } }),
+      setDailyWird: (w) => set((s) => ({ dailyWird: { ...s.dailyWird, ...w } })),
       setOnBoarded: (onBoarded) => set({ onBoarded }),
       reset: () => set({}),
     }),

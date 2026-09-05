@@ -184,6 +184,19 @@ export default function HomeScreen() {
             </Text>
           </Pressable>
         ))}
+        <Pressable
+          onPress={() => router.push('/tools/wird')}
+          style={({ pressed }) => [
+            styles.toolCard,
+            { backgroundColor: colors.card, borderColor: colors.hairline },
+            pressed && { opacity: 0.7 },
+          ]}
+        >
+          <Ionicons name="today-outline" size={24} color={colors.primary} />
+          <Text variant="bodySmall" font="uiBold" style={{ marginTop: space[2] }}>
+            {t('wird.title')}
+          </Text>
+        </Pressable>
       </View>
 
       <Text variant="caption" font="uiBold" color="tertiary" style={styles.section}>

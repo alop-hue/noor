@@ -115,16 +115,24 @@ export default function QuranTab() {
                       <Text variant="body" font={rtl ? 'arabicBold' : 'uiBold'} style={rtl ? styles.rtlText : undefined}>
                         {rtl ? arabicSurahName(item.id) : item.english_name}
                       </Text>
-                      <Text variant="caption" color="secondary" style={rtl ? styles.rtlText : undefined}>
-                        {item.translation} · {t('quran.verses', { n: item.ayahs })} · {t(`quran.${item.type === 'Meccan' ? 'meccan' : 'medinan'}`)}
-                        {isLast ? ` · ${t('quran.verseNumber')} ${lastRead!.ayah}` : ''}
-                      </Text>
+                      {!rtl && (
+                        <Text variant="caption" color="secondary">
+                          {item.translation} · {t('quran.verses', { n: item.ayahs })} · {t(`quran.${item.type === 'Meccan' ? 'meccan' : 'medinan'}`)}
+                          {isLast ? ` · ${t('quran.verseNumber')} ${lastRead!.ayah}` : ''}
+                        </Text>
+                      )}
+                      {rtl && (
+                        <Text variant="caption" color="secondary" style={styles.rtlText}>
+                          {t('quran.verses', { n: item.ayahs })} · {t(`quran.${item.type === 'Meccan' ? 'meccan' : 'medinan'}`)}
+                          {isLast ? ` · ${t('quran.verseNumber')} ${lastRead!.ayah}` : ''}
+                        </Text>
+                      )}
                     </View>
-                    {!rtl ? (
+                    {!rtl && (
                       <Text variant="body" font="arabicBold" style={{ fontSize: 20 }}>
                         {surahDisplayName(item.id, item.name, i18n.language)}
                       </Text>
-                    ) : null}
+                    )}
                   </Pressable>
                 );
               }}

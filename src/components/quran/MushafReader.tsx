@@ -44,13 +44,14 @@ interface Props {
   onNextSurah?: () => void;
 }
 
-const FONT_SIZE = 32;
-const LINE_HEIGHT = 58;
-const H_PADDING = 22;
-const PROBE_TEXT = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ الْحَمْدُ لِلَّهِ';
-const PAGE_BG = '#0C1210';
-const PAGE_TEXT = '#F2EBD8';
-const MARKER = '#B39B7D';
+const FONT_SIZE = 36;
+const LINE_HEIGHT = 64;
+const H_PADDING = 16;
+const PAGE_BG = '#0A1A14';
+const PAGE_TEXT = '#F5EDDA';
+const MARKER_COLOR = '#C9A227';
+const PAGE_FRAME = '#1A3D2E';
+const HEADER_GREEN = '#0B5E3E';
 const TAJWEED = {
   madd: '#E07B6E',
   qalqalah: '#7FB3D5',
@@ -99,7 +100,7 @@ export function MushafReader({
 
   const onProbeLayout = (e: NativeSyntheticEvent<TextLayoutEventData>) => {
     const line = e.nativeEvent.lines[0];
-    if (line && avgCharW === null) setAvgCharW(line.width / PROBE_TEXT.length);
+    if (line && avgCharW === null) setAvgCharW(line.width / 20);
   };
 
   const onLayout = (e: LayoutChangeEvent) => {
@@ -177,14 +178,15 @@ export function MushafReader({
         : 'transparent';
     const words = splitWords(v.arabic);
     const spans = tajweed ? colorizeWords(words) : null;
-    const marker = (
-      <RNText
-        key={`m${v.ayah}`}
-        style={[styles.marker, { color: MARKER }]}
-        onPress={() => onPressAyah(v.ayah)}
-      >
-        ﴿{toArabicDigits(v.ayah)}﴾
-      </RNText>
+    const verseMarker = (
+      <View key={`m${v.ayah}`} style={styles.verseMarker}>
+        <RNText
+          style={[styles.marker, { color: MARKER_COLOR }]}
+          onPress={() => onPressAyah(v.ayah)}
+        >
+          {toArabicDigits(v.ayah)}
+        </RNText>
+      </View>
     );
     const base = [
       styles.ayahSpan,
@@ -210,7 +212,7 @@ export function MushafReader({
           ]}
         >
           <Text variant="caption" color="secondary">{t('quran.hiddenAyah')}</Text>
-          {marker}
+          {verseMarker}
         </Pressable>
       );
     }
@@ -236,7 +238,7 @@ export function MushafReader({
             </RNText>
           ))}
           {v.sajda === 1 ? <RNText style={{ color: '#D4AF37' }}> ۩ </RNText> : null}
-          {marker}
+          {verseMarker}
         </RNText>
       );
     }
@@ -256,7 +258,7 @@ export function MushafReader({
             )),
           )}
           {v.sajda === 1 ? <RNText style={{ color: '#D4AF37' }}> ۩ </RNText> : null}
-          {marker}
+          {verseMarker}
         </RNText>
       );
     }
@@ -264,7 +266,7 @@ export function MushafReader({
       <RNText key={v.ayah} style={base} {...pressProps}>
         <RNText style={{ color: PAGE_TEXT }}>{v.arabic}</RNText>
         {v.sajda === 1 ? <RNText style={{ color: '#D4AF37' }}> ۩ </RNText> : null}
-        {marker}
+        {verseMarker}
       </RNText>
     );
   };
@@ -278,7 +280,7 @@ export function MushafReader({
             onTextLayout={onProbeLayout}
             numberOfLines={1}
           >
-            {PROBE_TEXT}
+            {'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'}
           </RNText>
           <Text variant="caption" color="tertiary">…</Text>
         </View>
@@ -304,20 +306,34 @@ export function MushafReader({
         viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
         renderItem={({ item, index }) => (
           <View style={[styles.page, { width: pageW }]}>
-            <View style={styles.pageHead}>
-              {index === 0 && showBismillah ? (
-                <RNText style={styles.bismillah}>{'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'}</RNText>
-              ) : index === 0 ? (
-                <RNText style={styles.surahName}>{surahName}</RNText>
-              ) : null}
+            <View style={styles.pageFrame}>
+              <View style={[styles.pageFrameInner, { borderColor: PAGE_FRAME }]}>
+                <View style={[styles.surahHeader, { backgroundColor: HEADER_GREEN }]}>
+                  {index === 0 && showBismillah ? (
+                    <RNText style={styles.bismillah}>{'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ'}</RNText>
+                  ) : index === 0 ? (
+                    <RNText style={styles.surahName}>{surahName}</RNText>
+                  ) : null}
+                  {index !== 0 && (
+                    <View style={styles.headerOrnament}>
+                      <View style={[styles.ornamentLine, { backgroundColor: 'rgba(255,255,255,0.3)' }]} />
+                      <View style={[styles.ornamentDot, { backgroundColor: 'rgba(255,255,255,0.5)' }]} />
+                      <View style={[styles.ornamentLine, { backgroundColor: 'rgba(255,255,255,0.3)' }]} />
+                    </View>
+                  )}
+                </View>
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  style={styles.pageBody}
+                  contentContainerStyle={{ paddingBottom: 80 }}
+                >
+                  {item.verses.map(renderVerse)}
+                </ScrollView>
+                <View style={[styles.pageFooter, { borderTopColor: PAGE_FRAME }]}>
+                  <RNText style={styles.pageNumber}>{toArabicDigits(pageIndex + 1)}</RNText>
+                </View>
+              </View>
             </View>
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              style={styles.pageBody}
-              contentContainerStyle={{ paddingBottom: 80 }}
-            >
-              {item.verses.map(renderVerse)}
-            </ScrollView>
             {index === lastPage && onNextSurah ? (
               <Pressable
                 onPress={onNextSurah}
@@ -336,13 +352,13 @@ export function MushafReader({
       />
       <View style={styles.footer}>
         <Pressable onPress={() => scrollToPage(pageIndex - 1)} hitSlop={10} style={styles.footerBtn}>
-          <Ionicons name={rtl ? 'chevron-forward' : 'chevron-back'} size={20} color={colors.textSecondary} />
+          <Ionicons name={rtl ? 'chevron-forward' : 'chevron-back'} size={20} color="rgba(245,237,218,0.6)" />
         </Pressable>
-        <Text variant="caption" font="uiBold" color="secondary">
+        <Text variant="caption" font="uiBold" style={{ color: 'rgba(245,237,218,0.6)' }}>
           {toArabicDigits(pageIndex + 1)} / {toArabicDigits(pages.length)}
         </Text>
         <Pressable onPress={() => scrollToPage(pageIndex + 1)} hitSlop={10} style={styles.footerBtn}>
-          <Ionicons name={rtl ? 'chevron-back' : 'chevron-forward'} size={20} color={colors.textSecondary} />
+          <Ionicons name={rtl ? 'chevron-back' : 'chevron-forward'} size={20} color="rgba(245,237,218,0.6)" />
         </Pressable>
       </View>
     </View>
@@ -351,11 +367,29 @@ export function MushafReader({
 
 const styles = StyleSheet.create({
   probe: { position: 'absolute', opacity: 0, fontSize: FONT_SIZE, lineHeight: LINE_HEIGHT, fontFamily: 'Amiri_700Bold' },
-  page: { flex: 1, paddingHorizontal: H_PADDING },
-  pageHead: { height: 44, justifyContent: 'center', alignItems: 'center' },
-  pageBody: { flex: 1 },
-  bismillah: { fontSize: 27, lineHeight: 44, color: '#B39B7D', fontFamily: 'Amiri_700Bold' },
-  surahName: { fontSize: 24, lineHeight: 40, color: '#B39B7D', fontFamily: 'Amiri_700Bold' },
+  page: { flex: 1 },
+  pageFrame: { flex: 1, padding: 8 },
+  pageFrameInner: { flex: 1, borderWidth: 2, borderRadius: 4, overflow: 'hidden', borderColor: PAGE_FRAME },
+  surahHeader: {
+    height: 52,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.15)',
+  },
+  headerOrnament: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  ornamentLine: { width: 40, height: 1 },
+  ornamentDot: { width: 5, height: 5, borderRadius: 3 },
+  bismillah: { fontSize: 26, lineHeight: 44, color: '#F5EDDA', fontFamily: 'Amiri_700Bold', textAlign: 'center' },
+  surahName: { fontSize: 24, lineHeight: 40, color: '#F5EDDA', fontFamily: 'Amiri_700Bold' },
+  pageBody: { flex: 1, paddingHorizontal: 12, paddingTop: 8 },
+  pageFooter: {
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderTopWidth: 1,
+  },
+  pageNumber: { fontSize: 16, color: 'rgba(245,237,218,0.5)', fontFamily: 'Amiri_400Regular' },
   ayahSpan: {
     fontSize: FONT_SIZE,
     lineHeight: LINE_HEIGHT,
@@ -367,7 +401,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 1,
     marginBottom: 4,
   },
-  marker: { fontSize: 22, lineHeight: LINE_HEIGHT, color: '#B39B7D' },
+  verseMarker: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 1.5,
+    borderColor: MARKER_COLOR,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 4,
+    alignSelf: 'center',
+  },
+  marker: { fontSize: 14, color: MARKER_COLOR, fontFamily: 'Amiri_700Bold' },
   wordTap: { borderBottomWidth: 1, borderBottomColor: 'rgba(242,235,216,0.4)', paddingHorizontal: 1, color: PAGE_TEXT },
   hiddenBox: {
     flexDirection: 'row',
