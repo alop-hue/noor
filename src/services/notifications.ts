@@ -12,12 +12,12 @@ export const canRequestExactAlarms = (): boolean =>
 
 export const ADHAN_SOUND_FILES: Record<Exclude<AdhanSound, 'silent' | 'custom'>, string> = {
   default: 'default',
-  makkah: 'athan_makkah.mp3',
-  hejaz: 'athan_hejaz.mp3',
-  ajam: 'athan_ajam.mp3',
-  fajr: 'athan_fajr.mp3',
-  alafasy: 'athan_alafasy_1431.mp3',
-  alafasy_hd: 'athan_alafasy_hd.mp3',
+  makkah: 'default',
+  hejaz: 'default',
+  ajam: 'default',
+  fajr: 'default',
+  alafasy: 'default',
+  alafasy_hd: 'default',
 };
 
 function soundFile(sound: AdhanSound): string | undefined {
@@ -56,6 +56,9 @@ export async function setupNotificationChannels(): Promise<void> {
       sound: file,
       vibrationPattern: [0, 250, 150, 250],
       enableVibrate: true,
+      bypassDnd: true,
+      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+      showBadge: false,
     });
   }
 }
@@ -115,6 +118,7 @@ export async function schedulePrayerReminder(reminder: PrayerReminder): Promise<
       title: reminder.label,
       body: `${String(reminder.hour).padStart(2, '0')}:${String(reminder.minute).padStart(2, '0')}`,
       sound: soundFile(reminder.sound),
+      priority: Notifications.AndroidNotificationPriority.MAX,
       data: { type: 'prayer', prayer: reminder.prayer },
     },
     trigger,
@@ -132,7 +136,7 @@ export async function cancelAllPrayerReminders(): Promise<void> {
 
 export async function sendTestNotification(title: string, body: string): Promise<void> {
   await Notifications.scheduleNotificationAsync({
-    content: { title, body, sound: 'default', data: { type: 'test' } },
+    content: { title, body, sound: 'default', priority: Notifications.AndroidNotificationPriority.MAX, data: { type: 'test' } },
     trigger: Platform.OS === 'android' ? { channelId: CHANNEL_PRAYER } : null,
   });
 }
@@ -145,6 +149,7 @@ export async function sendTestAdhan(sound: AdhanSound, title: string, body: stri
       title,
       body,
       sound: soundFile(sound),
+      priority: Notifications.AndroidNotificationPriority.MAX,
       data: { type: 'test', sound },
     },
     trigger: Platform.OS === 'android' ? { channelId } : null,
