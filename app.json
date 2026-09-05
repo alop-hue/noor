@@ -12,7 +12,9 @@
       "icon": "./assets/images/icon.png",
       "supportsTablet": true,
       "infoPlist": {
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio"
+        ]
       },
       "bundleIdentifier": "com.noor.quran"
     },
@@ -64,7 +66,16 @@
           "defaultChannel": "prayer"
         }
       ],
-      "./plugins/withExactAlarms.js"
+      "./plugins/withExactAlarms.js",
+      [
+        "react-native-edge-to-edge",
+        {
+          "android": {
+            "parentTheme": "Default",
+            "enforceNavigationBarContrast": false
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

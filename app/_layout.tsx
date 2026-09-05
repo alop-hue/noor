@@ -3,9 +3,9 @@ import { Amiri_400Regular, Amiri_700Bold } from '@expo-google-fonts/amiri';
 import { ScheherazadeNew_400Regular, ScheherazadeNew_700Bold } from '@expo-google-fonts/scheherazade-new';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { I18nManager, StyleSheet, View } from 'react-native';
+import { SystemBars } from 'react-native-edge-to-edge';
 
 import { Button, LoadingState, Text } from '@/components/ui';
 import { ensureDatabase } from '@/db/database';
@@ -60,7 +60,7 @@ function AppShell() {
   const rtl = language ? isRtl(language) : false;
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, direction: rtl ? 'rtl' : 'ltr' }}>
-      <StatusBar style={colors.mode === 'light' ? 'dark' : 'light'} />
+      <SystemBars style={colors.mode === 'light' ? 'dark' : 'light'} hidden={{ navigationBar: true }} />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="quran/[surah]" />
