@@ -27,9 +27,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate typed routes
-        run: npx expo customize --platform android
-
       - name: Build APK
         run: |
           cd android
