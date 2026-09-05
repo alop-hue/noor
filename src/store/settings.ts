@@ -54,6 +54,9 @@ export interface DailyWird {
   lastDate: string;
   totalPages: number;
   streak: number;
+  readSurahs: number[];
+  readPages: number[];
+  readJuz: number[];
 }
 
 export const DEFAULT_METHOD = 'MuslimWorldLeague';
@@ -134,7 +137,7 @@ export const useSettings = create<SettingsState>()(
       tasbihTarget: 33,
       tasbihDhikr: 'سُبْحَانَ الله',
       lastRead: null,
-      dailyWird: { enabled: false, goal: 'pages', target: 4, completed: 0, lastDate: '', totalPages: 0, streak: 0 },
+      dailyWird: { enabled: false, goal: 'pages', target: 4, completed: 0, lastDate: '', totalPages: 0, streak: 0, readSurahs: [], readPages: [], readJuz: [] },
       onBoarded: false,
       setTheme: (theme) => set({ theme }),
       setLanguage: (language) =>
@@ -163,7 +166,33 @@ export const useSettings = create<SettingsState>()(
       clearDownloads: () => set({ downloads: {} }),
       setTasbihTarget: (tasbihTarget) => set({ tasbihTarget }),
       setTasbihDhikr: (tasbihDhikr) => set({ tasbihDhikr }),
-      setLastRead: (surah, ayah) => set({ lastRead: { surah, ayah, timestamp: Date.now() } }),
+      setLastRead: (surah, ayah) => set((s) => {
+        const today = new Date().toISOString().slice(0, 10);
+        let dailyWird = s.dailyWird;
+        if (dailyWird.enabled && dailyWird.lastDate === today) {
+          const goal = dailyWird.goal;
+          if (goal === 'surahs') {
+            if (!dailyWird.readSurahs.includes(surah)) {
+              dailyWird = { ...dailyWird, readSurahs: [...dailyWird.readSurahs, surah], completed: dailyWird.completed + 1 };
+            }
+          } else if (goal === 'pages') {
+            const page = (surah - 1) * 10 + Math.ceil(ayah / 10);
+            if (!dailyWird.readPages.includes(page)) {
+              dailyWird = { ...dailyWird, readPages: [...dailyWird.readPages, page], completed: dailyWird.completed + 1 };
+            }
+          } else if (goal === 'juz') {
+            const juz = Math.min(30, Math.ceil(surah / 4));
+            if (!dailyWird.readJuz.includes(juz)) {
+              dailyWird = { ...dailyWird, readJuz: [...dailyWird.readJuz, juz], completed: dailyWird.completed + 1 };
+            }
+          }
+        } else if (dailyWird.enabled && dailyWird.lastDate !== today) {
+          const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+          const streak = dailyWird.lastDate === yesterday ? dailyWird.streak + 1 : 1;
+          dailyWird = { ...dailyWird, lastDate: today, completed: 0, readSurahs: [], readPages: [], readJuz: [], streak };
+        }
+        return { lastRead: { surah, ayah, timestamp: Date.now() }, dailyWird };
+      }),
       setDailyWird: (w) => set((s) => ({ dailyWird: { ...s.dailyWird, ...w } })),
       setOnBoarded: (onBoarded) => set({ onBoarded }),
       reset: () => set({}),
