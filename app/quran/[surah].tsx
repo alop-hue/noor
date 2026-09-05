@@ -61,6 +61,7 @@ export default function ReaderScreen() {
   const [memorizeMode, setMemorizeMode] = useState(params.memorize === '1');
   const isArabic = i18n.language.startsWith('ar');
   const isUrdu = i18n.language.startsWith('ur');
+  const rtl = i18n.dir() === 'rtl';
   const [memorized, setMemorized] = useState<Set<number>>(new Set());
   const [hidden, setHidden] = useState<Set<number>>(new Set());
   const [focusAyah, setFocusAyah] = useState(targetAyah ?? 1);
@@ -68,6 +69,7 @@ export default function ReaderScreen() {
   const [activeWord, setActiveWord] = useState<number | null>(null);
   const [testMode, setTestMode] = useState(false);
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
+  const [reciterOpen, setReciterOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -246,7 +248,7 @@ export default function ReaderScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <View style={[styles.header, { backgroundColor: colors.bgElevated, borderBottomColor: colors.hairline, paddingTop: insets.top }]}>
+      <View style={[styles.header, { backgroundColor: colors.bgElevated, borderBottomColor: colors.hairline, paddingTop: insets.top, flexDirection: rtl ? 'row-reverse' : 'row' }]}>
         <View style={styles.headerRow}>
           <Pressable onPress={() => router.back()} hitSlop={8}>
             <Ionicons name="chevron-back" size={24} color={colors.text} />
@@ -297,37 +299,48 @@ export default function ReaderScreen() {
             <Text variant="bodySmall" color="secondary">{t('memorize.title')}</Text>
             <Toggle value={memorizeMode} onValueChange={setMemorizeMode} />
           </View>
-          <Text variant="caption" font="uiBold" color="tertiary" style={styles.sheetSection}>
-            {t('audio.reciter')}
-          </Text>
-          {RECITERS.map((r) => {
-            const activeRec = r.id === audio.reciterId;
-            return (
-              <Pressable
-                key={r.id}
-                onPress={() => {
-                  setAudio({ reciterId: r.id });
-                  if (playingThis) startPlayback();
-                }}
-                style={({ pressed }) => [
-                  styles.reciterRow,
-                  { borderBottomColor: colors.hairline },
-                  activeRec && { backgroundColor: colors.primarySoft },
-                  pressed && { opacity: 0.7 },
-                ]}
-              >
-                <View style={{ flex: 1 }}>
-                  <Text variant="bodySmall" font="uiBold" color={activeRec ? 'primary' : 'text'}>
-                    {i18n.language.startsWith('ar') ? (r.ar ?? r.name) : r.name}
-                  </Text>
-                  {i18n.language.startsWith('en') ? (
-                    <Text variant="micro" color="tertiary">{r.style}</Text>
-                  ) : null}
-                </View>
-                {activeRec ? <Ionicons name="checkmark-circle" size={20} color={colors.primary} /> : null}
-              </Pressable>
-            );
-          })}
+          <View style={[styles.settingRow, { borderBottomColor: colors.hairline }]}>
+            <Text variant="bodySmall" color="secondary">{t('quran.reciter')}</Text>
+            <Pressable onPress={() => setReciterOpen(!reciterOpen)} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Text variant="bodySmall" font="uiBold" color="primary">
+                {RECITERS.find((r) => r.id === audio.reciterId)?.name ?? ''}
+              </Text>
+              <Ionicons name={reciterOpen ? 'chevron-up' : 'chevron-down'} size={16} color={colors.primary} />
+            </Pressable>
+          </View>
+          {reciterOpen && (
+            <View style={{ maxHeight: 200, overflow: 'hidden' }}>
+              {RECITERS.map((r) => {
+                const activeRec = r.id === audio.reciterId;
+                return (
+                  <Pressable
+                    key={r.id}
+                    onPress={() => {
+                      setAudio({ reciterId: r.id });
+                      setReciterOpen(false);
+                      if (playingThis) startPlayback();
+                    }}
+                    style={({ pressed }) => [
+                      styles.reciterRow,
+                      { borderBottomColor: colors.hairline },
+                      activeRec && { backgroundColor: colors.primarySoft },
+                      pressed && { opacity: 0.7 },
+                    ]}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text variant="bodySmall" font="uiBold" color={activeRec ? 'primary' : 'text'}>
+                        {i18n.language.startsWith('ar') ? (r.ar ?? r.name) : r.name}
+                      </Text>
+                      {i18n.language.startsWith('en') ? (
+                        <Text variant="micro" color="tertiary">{r.style}</Text>
+                      ) : null}
+                    </View>
+                    {activeRec ? <Ionicons name="checkmark-circle" size={18} color={colors.primary} /> : null}
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
         </ScrollView>
       </ResizableSheet>
 

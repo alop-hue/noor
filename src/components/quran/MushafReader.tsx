@@ -183,16 +183,7 @@ export function MushafReader({
         : 'transparent';
     const words = splitWords(v.arabic);
     const spans = tajweed ? colorizeWords(words) : null;
-    const verseMarker = (
-      <View key={`m${v.ayah}`} style={styles.verseMarker}>
-        <RNText
-          style={[styles.marker, { color: MARKER_COLOR }]}
-          onPress={() => onPressAyah(v.ayah)}
-        >
-          {toArabicDigits(v.ayah)}
-        </RNText>
-      </View>
-    );
+    const verseMarkerInline = `  ${toArabicDigits(v.ayah)}  `;
     const base = [
       styles.ayahSpan,
       {
@@ -217,7 +208,7 @@ export function MushafReader({
           ]}
         >
           <Text variant="caption" color="secondary">{t('quran.hiddenAyah')}</Text>
-          {verseMarker}
+          <RNText style={[styles.inlineMarker, { color: MARKER_COLOR }]}>{verseMarkerInline}</RNText>
         </Pressable>
       );
     }
@@ -243,7 +234,9 @@ export function MushafReader({
             </RNText>
           ))}
           {v.sajda === 1 ? <RNText style={{ color: '#D4AF37' }}> ۩ </RNText> : null}
-          {verseMarker}
+          <RNText style={styles.inlineMarkerCircle} onPress={() => onPressAyah(v.ayah)}>
+            {verseMarkerInline}
+          </RNText>
         </RNText>
       );
     }
@@ -267,30 +260,19 @@ export function MushafReader({
             ));
           })}
           {v.sajda === 1 ? <RNText style={{ color: '#D4AF37' }}> ۩ </RNText> : null}
-          {verseMarker}
+          <RNText style={styles.inlineMarkerCircle} onPress={() => onPressAyah(v.ayah)}>
+            {verseMarkerInline}
+          </RNText>
         </RNText>
       );
     }
     return (
       <RNText key={v.ayah} style={base} {...pressProps}>
-        {words.map((word, i) => {
-          const isHighlighted = isWordActive && i === activeWord;
-          return (
-            <RNText
-              key={i}
-              style={{
-                color: PAGE_TEXT,
-                backgroundColor: isHighlighted ? 'rgba(201,162,39,0.4)' : 'transparent',
-                borderRadius: 3,
-                paddingHorizontal: isHighlighted ? 1 : 0,
-              }}
-            >
-              {word}{' '}
-            </RNText>
-          );
-        })}
+        <RNText style={{ color: PAGE_TEXT }}>{v.arabic}</RNText>
         {v.sajda === 1 ? <RNText style={{ color: '#D4AF37' }}> ۩ </RNText> : null}
-        {verseMarker}
+        <RNText style={styles.inlineMarkerCircle}>
+          {verseMarkerInline}
+        </RNText>
       </RNText>
     );
   };
@@ -419,24 +401,39 @@ const styles = StyleSheet.create({
     lineHeight: LINE_HEIGHT,
     fontFamily: 'Amiri_700Bold',
     color: PAGE_TEXT,
-    textAlign: 'right',
+    textAlign: 'justify',
     direction: 'rtl',
     borderRadius: 4,
     paddingHorizontal: 1,
     marginBottom: 4,
   },
   verseMarker: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     borderWidth: 1.5,
     borderColor: MARKER_COLOR,
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 4,
     alignSelf: 'center',
+    backgroundColor: 'rgba(201,162,39,0.08)',
   },
-  marker: { fontSize: 14, color: MARKER_COLOR, fontFamily: 'Amiri_700Bold' },
+  marker: { fontSize: 15, color: MARKER_COLOR, fontFamily: 'Amiri_700Bold', textAlign: 'center' },
+  inlineMarker: { fontSize: FONT_SIZE, color: MARKER_COLOR, fontFamily: 'Amiri_700Bold' },
+  inlineMarkerCircle: {
+    fontSize: 14,
+    color: MARKER_COLOR,
+    fontFamily: 'Amiri_700Bold',
+    backgroundColor: 'rgba(201,162,39,0.12)',
+    borderWidth: 1,
+    borderColor: MARKER_COLOR,
+    borderRadius: 14,
+    overflow: 'hidden',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginHorizontal: 2,
+  },
   wordTap: { borderBottomWidth: 1, borderBottomColor: 'rgba(242,235,216,0.4)', paddingHorizontal: 1, color: PAGE_TEXT },
   hiddenBox: {
     flexDirection: 'row',
@@ -455,7 +452,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 10,
+    bottom: 48,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
