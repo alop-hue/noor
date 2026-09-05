@@ -8,6 +8,7 @@
     "@expo-google-fonts/scheherazade-new": "^0.4.3",
     "@expo/ui": "~57.0.9",
     "@expo/vector-icons": "^15.0.2",
+    "@react-navigation/bottom-tabs": "^7.18.18",
     "@types/jest": "29.5.14",
     "adhan": "^4.4.4",
     "expo": "~57.0.11",
