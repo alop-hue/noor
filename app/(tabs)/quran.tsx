@@ -28,7 +28,8 @@ export default function QuranTab() {
   }, []);
 
   const openSearch = () => router.push('/quran/search');
-  const openSurah = (id: number) => router.push(`/quran/${id}`);
+  const openSurah = (id: number, ayah?: number) =>
+    router.push({ pathname: '/quran/[surah]', params: ayah ? { surah: String(id), ayah: String(ayah) } : { surah: String(id) } });
 
   const rtl = i18n.language.startsWith('ar');
   const lastReadSurah = lastRead ? surahs?.find((s) => s.id === lastRead.surah) : undefined;
@@ -73,7 +74,7 @@ export default function QuranTab() {
           <>
             {lastRead ? (
               <Pressable
-                onPress={() => openSurah(lastRead.surah)}
+                onPress={() => openSurah(lastRead.surah, lastRead.ayah)}
                 style={({ pressed }) => [
                   styles.continueChip,
                   { backgroundColor: colors.primarySoft, borderColor: colors.primary },

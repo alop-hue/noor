@@ -84,6 +84,9 @@ const de: Translation = {
     hiddenAyah: 'Verborgen',
     hideAyah: 'Vers verbergen',
     showAyah: 'Vers anzeigen',
+    prevPage: 'Vorherige Seite',
+    nextPage: 'Nächste Seite',
+    loadError: 'Sure konnte nicht geladen werden',
   },
 
   hadith: {
@@ -236,6 +239,7 @@ const de: Translation = {
     next: 'Weiter',
     done: 'Fertig',
     progress: '{done} von {total}',
+    reset: 'Zähler zurücksetzen',
   },
 
   qibla: {
@@ -345,6 +349,11 @@ const de: Translation = {
     dnd: 'Nicht stören',
     dndHint: 'Exakte Wecker klingeln auch im DND',
     perPrayerSubtitle: 'Wähle Gebete für Benachrichtigungen',
+    battery: 'Ausführung im Hintergrund',
+    batteryHint: 'Noor von der Akku-Optimierung ausnehmen, damit Erinnerungen auch mit geschlossener App ankommen',
+    batteryOemHint: 'Bei Xiaomi, Huawei & Co. zusätzlich Autostart in den Systemeinstellungen aktivieren',
+    testDelayed: 'Test in 10 Sekunden',
+    testDelayedHint: 'App in den Hintergrund legen — in 10 Sekunden sollte eine Benachrichtigung ankommen',
   },
 
   legal: {

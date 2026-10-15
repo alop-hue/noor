@@ -84,6 +84,9 @@ const fr: Translation = {
     hiddenAyah: 'Masqué',
     hideAyah: 'Masquer le verset',
     showAyah: 'Afficher le verset',
+    prevPage: 'Page précédente',
+    nextPage: 'Page suivante',
+    loadError: 'Impossible de charger cette sourate',
   },
 
   hadith: {
@@ -236,6 +239,7 @@ const fr: Translation = {
     next: 'Suivant',
     done: 'Terminé',
     progress: '{done} sur {total}',
+    reset: 'Réinitialiser les compteurs',
   },
 
   qibla: {
@@ -345,6 +349,11 @@ const fr: Translation = {
     dnd: 'Ne pas déranger',
     dndHint: 'Les alarmes exactes sonnent même en DND',
     perPrayerSubtitle: 'Choisissez les prières à notifier',
+    battery: 'Fonctionnement en arrière-plan',
+    batteryHint: 'Excluez Noor de l’optimisation batterie pour recevoir les rappels avec l’app fermée',
+    batteryOemHint: 'Sur Xiaomi, Huawei et similaires, activez aussi le démarrage automatique dans les réglages système',
+    testDelayed: 'Test dans 10 secondes',
+    testDelayedHint: 'Mettez l’app en arrière-plan — une notification doit arriver dans 10 secondes',
   },
 
   legal: {

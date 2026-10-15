@@ -8,7 +8,7 @@ import * as Notifications from 'expo-notifications';
 
 import { Button, ListRow, SectionLabel, Text, Toggle } from '@/components/ui';
 import { computePrayerTimes, formatTime, PRAYER_NAMES } from '@/services/prayer';
-import { openExactAlarmSettings, canRequestExactAlarms, requestNotificationPermission, rescheduleAllPrayerReminders, sendTestAdhan, setupNotificationChannels } from '@/services/notifications';
+import { openExactAlarmSettings, canRequestExactAlarms, openBatteryOptimizationSettings, requestNotificationPermission, rescheduleAllPrayerReminders, sendDelayedTestNotification, sendTestAdhan, setupNotificationChannels } from '@/services/notifications';
 import { useSettings, type AdhanSound, type PrayerName } from '@/store/settings';
 import { useTheme } from '@/theme/ThemeContext';
 import { radius, space } from '@/theme/tokens';
@@ -186,9 +186,26 @@ export default function NotificationSettingsScreen() {
         </>
       )}
 
+      <SectionLabel>{t('notifications.battery')}</SectionLabel>
+      <ListRow
+        icon={<Ionicons name="battery-charging-outline" size={20} color={colors.primary} />}
+        title={t('notifications.battery')}
+        subtitle={t('notifications.batteryHint')}
+        onPress={() => void openBatteryOptimizationSettings()}
+        right={<Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />}
+      />
+      <Text variant="caption" color="tertiary" style={{ paddingHorizontal: space[4], marginTop: space[1] }}>
+        {t('notifications.batteryOemHint')}
+      </Text>
+
       <SectionLabel>{t('notifications.test')}</SectionLabel>
-      <View style={{ paddingHorizontal: space[4] }}>
+      <View style={{ paddingHorizontal: space[4], gap: space[2] }}>
         <Button title={t('notifications.test')} onPress={test} variant="secondary" />
+        <Button
+          title={t('notifications.testDelayed')}
+          onPress={() => void sendDelayedTestNotification(t('notifications.test'), t('notifications.testDelayedHint'), 10)}
+          variant="ghost"
+        />
         <Text variant="caption" color="tertiary" style={{ marginTop: space[2] }}>
           {t('notifications.testHint')}
         </Text>

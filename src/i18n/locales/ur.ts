@@ -84,6 +84,9 @@ const ur: Translation = {
     hiddenAyah: 'مخفی',
     hideAyah: 'آیت چھپائیں',
     showAyah: 'آیت دکھائیں',
+    prevPage: 'پچھلا صفحہ',
+    nextPage: 'اگلا صفحہ',
+    loadError: 'یہ سورہ لوڈ نہیں ہو سکی',
   },
 
   hadith: {
@@ -236,6 +239,7 @@ const ur: Translation = {
     next: 'اگلا',
     done: 'مکمل',
     progress: '{done} از {total}',
+    reset: 'گنتیاں ری سیٹ کریں',
   },
 
   qibla: {
@@ -345,6 +349,11 @@ const ur: Translation = {
     dnd: 'پریشان نہ کریں',
     dndHint: 'درست الارم فعال ہونے پر ڈی این ڈی میں بھی بجیں گے',
     perPrayerSubtitle: 'منتخب کریں کن نمازوں کی اطلاع چاہیے',
+    battery: 'پس منظر میں',
+    batteryHint: 'یاددہانیں ایپ بند ہونے پر بھی موصول ہوں اس لیے نور کو بیٹری بہتر سازی سے مستثنیٰ کریں',
+    batteryOemHint: 'Xiaomi, Huawei وغیرہ پر سسٹم سیٹنگز میں Autostart بھی آن کریں',
+    testDelayed: '10 سیکنڈ بعد ٹیسٹ',
+    testDelayedHint: 'ایپ کو پس منظر میں رکھیں — 10 سیکنڈ میں نوٹیفکیشن آنا چاہیے',
   },
 
   legal: {

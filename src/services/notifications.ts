@@ -88,6 +88,23 @@ export async function openExactAlarmSettings(): Promise<void> {
   }
 }
 
+export async function openBatteryOptimizationSettings(): Promise<void> {
+  const pkg = Constants.expoConfig?.android?.package ?? 'com.noor.quran';
+  try {
+    await IntentLauncher.startActivityAsync('android.settings.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS', {
+      data: `package:${pkg}`,
+    });
+  } catch {
+    try {
+      await IntentLauncher.startActivityAsync('android.settings.APPLICATION_DETAILS_SETTINGS', {
+        data: `package:${pkg}`,
+      });
+    } catch {
+      // no settings screen available
+    }
+  }
+}
+
 export interface PrayerReminder {
   prayer: PrayerName;
   hour: number;
@@ -156,12 +173,40 @@ export async function sendTestAdhan(sound: AdhanSound, title: string, body: stri
   });
 }
 
+export async function sendDelayedTestNotification(
+  title: string,
+  body: string,
+  seconds: number,
+): Promise<string> {
+  const date = new Date(Date.now() + Math.max(1, seconds) * 1000);
+  return Notifications.scheduleNotificationAsync({
+    content: {
+      title,
+      body,
+      sound: 'default',
+      priority: Notifications.AndroidNotificationPriority.MAX,
+      data: { type: 'test' },
+    },
+    trigger: Platform.OS === 'android'
+      ? { ...buildDateTrigger(date), channelId: CHANNEL_PRAYER }
+      : buildDateTrigger(date),
+  });
+}
+
 export async function rescheduleAllPrayerReminders(reminders: PrayerReminder[]): Promise<number> {
-  await cancelAllPrayerReminders();
+  try {
+    await cancelAllPrayerReminders();
+  } catch {
+    // cancelling must never block re-scheduling
+  }
   let count = 0;
   for (const r of reminders) {
-    const id = await schedulePrayerReminder(r);
-    if (id) count++;
+    try {
+      const id = await schedulePrayerReminder(r);
+      if (id) count++;
+    } catch {
+      // one failed reminder must not take the others down with it
+    }
   }
   return count;
 }

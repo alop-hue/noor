@@ -1,0 +1,17 @@
+const io = new IntersectionObserver(
+  (entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    }
+  },
+  { threshold: 0.15 },
+);
+
+document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+document.querySelectorAll('[data-year]').forEach((el) => {
+  el.textContent = String(new Date().getFullYear());
+});

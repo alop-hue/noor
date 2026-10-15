@@ -84,6 +84,9 @@ const ar: Translation = {
     hiddenAyah: 'مخفية',
     hideAyah: 'إخفاء الآية',
     showAyah: 'إظهار الآية',
+    prevPage: 'الصفحة السابقة',
+    nextPage: 'الصفحة التالية',
+    loadError: 'تعذّر تحميل السورة',
   },
 
   hadith: {
@@ -236,6 +239,7 @@ const ar: Translation = {
     next: 'التالي',
     done: 'اكتمل',
     progress: '{done} من {total}',
+    reset: 'تصفير العدادات',
   },
 
   qibla: {
@@ -345,6 +349,11 @@ const ar: Translation = {
     dnd: 'عدم الإزعاج',
     dndHint: 'ينطلق المنبه حتى مع عدم الإزعاج عند تفعيل المنبهات الدقيقة',
     perPrayerSubtitle: 'اختر الصلوات التي تنبهك',
+    battery: 'التشغيل في الخلفية',
+    batteryHint: 'استثنِ نور من تحسين البطاقة ليصل التذكير حتى لو كان التطبيق مغلقًا',
+    batteryOemHint: 'على Xiaomi وHuawei ونحوها فعّل أيضًا التشغيل التلقائي من إعدادات النظام',
+    testDelayed: 'اختبار بعد 10 ثوانٍ',
+    testDelayedHint: 'ضع التطبيق في الخلفية أولًا — يصل تنبيه خلال 10 ثوانٍ',
   },
 
   legal: {

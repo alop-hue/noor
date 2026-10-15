@@ -84,6 +84,9 @@ const id: Translation = {
     hiddenAyah: 'Tersembunyi',
     hideAyah: 'Sembunyikan ayat',
     showAyah: 'Tampilkan ayat',
+    prevPage: 'Halaman sebelumnya',
+    nextPage: 'Halaman berikutnya',
+    loadError: 'Tidak dapat memuat surah ini',
   },
 
   hadith: {
@@ -236,6 +239,7 @@ const id: Translation = {
     next: 'Berikutnya',
     done: 'Selesai',
     progress: '{done} dari {total}',
+    reset: 'Atur ulang hitungan',
   },
 
   qibla: {
@@ -345,6 +349,11 @@ const id: Translation = {
     dnd: 'Jangan Ganggu',
     dndHint: 'Alarm presisi tetap berbunyi di DND',
     perPrayerSubtitle: 'Pilih shalat yang ingin diingatkan',
+    battery: 'Berjalan di latar belakang',
+    batteryHint: 'Keluarkan Noor dari optimasi baterai agar pengingat tetap sampai saat aplikasi ditutup',
+    batteryOemHint: 'Di Xiaomi, Huawei, dan sejenisnya, aktifkan juga Mulai otomatis di pengaturan sistem',
+    testDelayed: 'Uji dalam 10 detik',
+    testDelayedHint: 'Pindahkan aplikasi ke latar belakang — notifikasi harus tiba dalam 10 detik',
   },
 
   legal: {

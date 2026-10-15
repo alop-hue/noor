@@ -82,6 +82,9 @@ const en = {
     hiddenAyah: 'Hidden',
     hideAyah: 'Hide verse',
     showAyah: 'Show verse',
+    prevPage: 'Previous page',
+    nextPage: 'Next page',
+    loadError: 'Could not load this surah',
   },
 
   hadith: {
@@ -234,6 +237,7 @@ const en = {
     next: 'Next',
     done: 'Completed',
     progress: '{done} of {total}',
+    reset: 'Reset counters',
   },
 
   qibla: {
@@ -343,6 +347,11 @@ const en = {
     dnd: 'Do Not Disturb',
     dndHint: 'Alarms ring in DND when exact alarms are allowed',
     perPrayerSubtitle: 'Choose which prayers notify you',
+    battery: 'Background delivery',
+    batteryHint: 'Exclude Noor from battery optimization so reminders arrive when the app is closed',
+    batteryOemHint: 'On Xiaomi, Huawei and similar phones also enable Autostart in system settings',
+    testDelayed: 'Test after 10 seconds',
+    testDelayedHint: 'Background the app first — a notification should arrive in 10 seconds',
   },
 
   legal: {

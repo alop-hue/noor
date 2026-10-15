@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -41,9 +42,13 @@ export default function DhikrScreen() {
 
   const bump = (id: number, count: number) => {
     setCounts((c) => {
-      const next = { ...c, [id]: Math.min((c[id] ?? 0) + 1, count) };
-      return next;
+      const cur = c[id] ?? 0;
+      if (cur >= count) return c;
+      return { ...c, [id]: cur + 1 };
     });
+    const cur = counts[id] ?? 0;
+    const completed = cur + 1 >= count && cur < count;
+    void Haptics.impactAsync(completed ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light).catch(() => {});
   };
 
   const resetAll = () => setCounts({});
@@ -51,11 +56,11 @@ export default function DhikrScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
       <View style={[styles.header, { backgroundColor: colors.bgElevated, borderBottomColor: colors.hairline, flexDirection: rtl ? 'row-reverse' : 'row' }]}>
-        <Pressable onPress={() => router.back()} hitSlop={8}>
+        <Pressable onPress={() => router.back()} hitSlop={8} accessibilityLabel={t('common.back')}>
           <Ionicons name="chevron-back" size={24} color={colors.text} />
         </Pressable>
         <Text variant="subheading" font="uiBold">{t('tools.dhikr')}</Text>
-        <Pressable onPress={resetAll} hitSlop={8}>
+        <Pressable onPress={resetAll} hitSlop={8} accessibilityLabel={t('dhikr.reset')}>
           <Ionicons name="refresh" size={22} color={colors.textSecondary} />
         </Pressable>
       </View>

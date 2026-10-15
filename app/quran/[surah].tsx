@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
@@ -70,24 +71,36 @@ export default function ReaderScreen() {
   const [testMode, setTestMode] = useState(false);
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
   const [reciterOpen, setReciterOpen] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    let cancelled = false;
+    setLoadError(false);
     (async () => {
-      const [s, ayahs, trs] = await Promise.all([
-        getSurah(surahId),
-        getAyahs(surahId),
-        getSurahTranslations(surahId, defaultTranslation),
-      ]);
-      setSurah(s);
-      const trMap = new Map<number, string>();
-      for (const tr of trs) trMap.set(tr.ayah, tr.text);
-      setVerses(ayahs.map((a) => ({ ayah: a, translation: trMap.get(a.ayah) ?? '' })));
-      setMemorized(new Set(await getMemorizedSurah(surahId)));
-      if (targetAyah) {
-        setTimeout(() => scrollToAyah(targetAyah), 350);
+      try {
+        const [s, ayahs, trs] = await Promise.all([
+          getSurah(surahId),
+          getAyahs(surahId),
+          getSurahTranslations(surahId, defaultTranslation),
+        ]);
+        if (cancelled) return;
+        setSurah(s);
+        const trMap = new Map<number, string>();
+        for (const tr of trs) trMap.set(tr.ayah, tr.text);
+        setVerses(ayahs.map((a) => ({ ayah: a, translation: trMap.get(a.ayah) ?? '' })));
+        setMemorized(new Set(await getMemorizedSurah(surahId)));
+        if (targetAyah) {
+          setTimeout(() => scrollToAyah(targetAyah), 350);
+        }
+      } catch {
+        if (!cancelled) setLoadError(true);
       }
     })();
-  }, [surahId, defaultTranslation]);
+    return () => {
+      cancelled = true;
+    };
+  }, [surahId, defaultTranslation, reloadKey]);
 
   useEffect(() => {
     const unsub = subscribeToPlayer(setPlayer);
@@ -242,7 +255,20 @@ export default function ReaderScreen() {
     setActiveWord(wordIdx);
   }, [playingThis, activeAyah, player.currentTime, verses]);
 
-  if (!surah || !verses) return <LoadingState label={t('common.loading')} />;
+  if (!surah || !verses) {
+    if (loadError) {
+      return (
+        <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', gap: space[3], padding: space[5] }}>
+          <Ionicons name="cloud-offline-outline" size={40} color={colors.textTertiary} />
+          <Text variant="bodySmall" color="secondary" style={{ textAlign: 'center' }}>
+            {t('quran.loadError')}
+          </Text>
+          <Button title={t('common.retry')} onPress={() => setReloadKey((k) => k + 1)} variant="secondary" />
+        </View>
+      );
+    }
+    return <LoadingState label={t('common.loading')} />;
+  }
 
   const showBismillah = surahId !== 1 && surahId !== 9;
 
@@ -250,7 +276,7 @@ export default function ReaderScreen() {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={[styles.header, { backgroundColor: colors.bgElevated, borderBottomColor: colors.hairline, paddingTop: insets.top, flexDirection: rtl ? 'row-reverse' : 'row' }]}>
         <View style={styles.headerRow}>
-          <Pressable onPress={() => router.back()} hitSlop={8}>
+          <Pressable onPress={() => router.back()} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('common.back')}>
             <Ionicons name="chevron-back" size={24} color={colors.text} />
           </Pressable>
           <View style={{ alignItems: 'center', flex: 1 }}>
@@ -263,13 +289,15 @@ export default function ReaderScreen() {
                 : `${surah.english_name} · ${t(`quran.${surah.type === 'Meccan' ? 'meccan' : 'medinan'}`)} · ${surah.ayahs}`}
             </Text>
           </View>
-          <Pressable onPress={() => setSettingsOpen(true)} hitSlop={8} style={[styles.iconBtn, { backgroundColor: colors.primarySoft }]}>
+          <Pressable onPress={() => setSettingsOpen(true)} hitSlop={8} style={[styles.iconBtn, { backgroundColor: colors.primarySoft }]} accessibilityRole="button" accessibilityLabel={t('quran.readerSettings')}>
             <Ionicons name="options-outline" size={18} color={colors.primary} />
           </Pressable>
           <Pressable
             onPress={() => (playingThis ? togglePlayPause() : startPlayback())}
             hitSlop={8}
             style={[styles.iconBtn, { backgroundColor: colors.primarySoft }]}
+            accessibilityRole="button"
+            accessibilityLabel={playingThis ? t('quran.pause') : t('quran.playSurah')}
           >
             <Ionicons name={playingThis ? 'pause' : 'play'} size={18} color={colors.primary} />
           </Pressable>
@@ -350,7 +378,7 @@ export default function ReaderScreen() {
         verses={verses.map((v) => ({ ayah: v.ayah.ayah, arabic: v.ayah.arabic, sajda: v.ayah.sajda }))}
         showBismillah={showBismillah}
         activeAyah={activeAyah}
-        focusAyah={memorizeMode ? focusAyah : undefined}
+        focusAyah={memorizeMode ? focusAyah : targetAyah}
         memorizeMode={memorizeMode}
         tajweed={tajweed}
         wordByWord={wordByWord}
@@ -446,11 +474,15 @@ export default function ReaderScreen() {
           if (!active) return;
           const bm = await toggleAyahBookmark(active.ayah.surah, active.ayah.ayah);
           setIsBookmarked(bm);
+          void Haptics.notificationAsync(
+            bm ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Warning,
+          ).catch(() => {});
         }}
         isMemorized={isMemorized}
         onToggleMemorize={async () => {
           if (!active) return;
           await toggleMemorizeState(active.ayah.ayah);
+          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
         }}
         note={note}
         setNote={setNote}
