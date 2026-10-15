@@ -13,6 +13,7 @@
   --night-text: rgba(245, 237, 218, 0.78);
   --font-display: 'Amiri', 'Times New Roman', serif;
   --font-body: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  --nav-h: 52px;
 }
 
 html[lang='en'],
@@ -73,7 +74,9 @@ a {
   inset-inline: 0;
   z-index: 50;
   height: var(--nav-h);
-  background: rgba(11, 61, 53, 0.94);
+  background: rgba(11, 61, 53, 0.97);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(10px);
   border-block-end: 1px solid var(--gold-line-soft);
 }
