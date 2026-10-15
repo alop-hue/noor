@@ -13,7 +13,19 @@
   --night-text: rgba(245, 237, 218, 0.78);
   --font-display: 'Amiri', 'Times New Roman', serif;
   --font-body: 'IBM Plex Sans Arabic', system-ui, sans-serif;
-  --nav-h: 60px;
+}
+
+html[lang='en'],
+html[lang='fr'],
+html[lang='de'],
+html[lang='id'],
+html[lang='tr'] {
+  --font-display: 'Cormorant Garamond', 'Amiri', Georgia, serif;
+}
+
+html[lang='ur'] {
+  --font-display: 'Noto Nastaliq Urdu', 'Amiri', serif;
+  --font-body: 'Noto Sans Arabic', 'IBM Plex Sans Arabic', system-ui, sans-serif;
 }
 
 * {
@@ -149,6 +161,7 @@ a {
 .bismillah {
   font-family: var(--font-display);
   font-size: clamp(22px, 4vw, 30px);
+  line-height: 1.7;
   color: var(--gold);
   margin: 0 0 18px;
 }
@@ -157,7 +170,7 @@ a {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: clamp(34px, 7vw, 56px);
-  line-height: 1.35;
+  line-height: 1.55;
   color: #f5edda;
   margin: 0 0 16px;
 }
@@ -228,16 +241,34 @@ a {
   justify-content: center;
 }
 
+.phone-stage {
+  perspective: 1100px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
 .phone {
+  --rx: 0deg;
+  --ry: 0deg;
+  --srx: 0deg;
+  --sx: 1;
+  position: relative;
   width: min(270px, 62vw);
-  border: 9px solid #17110a;
-  border-radius: 40px;
+  border: 10px solid #1d1d21;
+  border-radius: 42px;
   overflow: hidden;
   min-height: 340px;
   background:
     radial-gradient(120% 60% at 50% 0%, rgba(201, 162, 39, 0.18), transparent 60%),
     linear-gradient(165deg, var(--green) 0%, var(--green-deep) 55%, var(--night) 100%);
-  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    0 0 0 1px rgba(201, 162, 39, 0.35),
+    0 50px 90px -26px rgba(0, 0, 0, 0.7);
+  transform: rotateX(calc(var(--srx) + var(--rx))) rotateY(var(--ry)) scale(var(--sx));
+  transform-style: preserve-3d;
+  transition: transform 0.2s ease-out, box-shadow 0.25s ease-out;
+  will-change: transform;
 }
 
 .phone img {
@@ -517,14 +548,23 @@ a {
   html {
     scroll-behavior: auto;
   }
-  .reveal {
+  .reveal,
+  .anim,
+  .checklist li.reveal,
+  .sec-head.reveal .medallion {
     opacity: 1;
     transform: none;
     transition: none;
+    animation: none;
+  }
+  .phone-stage.float {
+    animation: none;
   }
   .btn,
-  .feature {
+  .feature,
+  .phone {
     transition: none;
+    transform: none;
   }
 }
 
@@ -557,5 +597,299 @@ a {
   }
   .footer-brand {
     margin-inline-end: 0;
+  }
+}
+
+/* ——— Urdu (Nastaliq) typography ——— */
+html[lang='ur'] .hero-title {
+  font-size: clamp(26px, 5vw, 44px);
+  line-height: 2.1;
+}
+html[lang='ur'] .download-name {
+  line-height: 1.9;
+}
+html[lang='ur'] .medallion {
+  font-size: 15px;
+  line-height: 1.5;
+}
+html[lang='ur'] .btn {
+  font-size: 15px;
+}
+html[lang='ur'] .feature h3 {
+  line-height: 1.8;
+}
+
+/* ——— scroll progress ——— */
+.progress {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 3px;
+  z-index: 60;
+  pointer-events: none;
+}
+.progress span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--gold), #e3d18b);
+}
+
+/* ——— nav tools ——— */
+.nav-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.lang-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(245, 237, 218, 0.08);
+  color: #f5edda;
+  border: 1px solid rgba(245, 237, 218, 0.25);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+}
+.lang-select option {
+  color: #241c10;
+  background: #faf6eb;
+}
+.lang-select:hover {
+  border-color: var(--gold);
+}
+.theme-toggle {
+  background: rgba(245, 237, 218, 0.08);
+  border: 1px solid rgba(245, 237, 218, 0.25);
+  border-radius: 8px;
+  color: #f5edda;
+  padding: 6px;
+  display: flex;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+.theme-toggle:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.theme-toggle .icon-sun {
+  display: none;
+}
+[data-theme='dark'] .theme-toggle .icon-moon {
+  display: none;
+}
+[data-theme='dark'] .theme-toggle .icon-sun {
+  display: block;
+}
+.nav-links a {
+  position: relative;
+  padding-block: 4px;
+}
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  inset-block-end: -6px;
+  inset-inline-start: 0;
+  width: 0;
+  height: 2px;
+  background: var(--gold);
+  transition: width 0.25s ease;
+}
+.nav-links a.active {
+  color: var(--gold);
+}
+.nav-links a.active::after {
+  width: 100%;
+}
+.nav.scrolled {
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+}
+
+/* ——— hero entrance ——— */
+.anim {
+  opacity: 0;
+  animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+.a1 { animation-delay: 0.05s; }
+.a2 { animation-delay: 0.2s; }
+.a3 { animation-delay: 0.35s; }
+.a4 { animation-delay: 0.5s; }
+.a5 { animation-delay: 0.65s; }
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.phone-stage.float {
+  animation: floaty 6s ease-in-out infinite;
+}
+
+/* ——— device mockup ——— */
+.phone-notch {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 16px;
+  border-radius: 999px;
+  background: #100d08;
+  z-index: 4;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+}
+.phone-sm .phone-notch {
+  width: 44px;
+  height: 11px;
+  top: 6px;
+}
+.phone::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 1.5px rgba(245, 237, 218, 0.1),
+    inset 0 -36px 44px -34px rgba(0, 0, 0, 0.7);
+}
+.phone::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    calc(110deg + var(--ry) * 2),
+    transparent 32%,
+    rgba(255, 255, 255, 0.09) 46%,
+    rgba(255, 255, 255, 0.015) 57%,
+    transparent 68%
+  );
+}
+
+/* ——— section motion ——— */
+.sec-head.reveal .medallion {
+  transform: scale(0.5);
+  opacity: 0;
+  transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.4) 0.1s, opacity 0.4s ease 0.1s;
+}
+.sec-head.reveal.in .medallion {
+  transform: scale(1);
+  opacity: 1;
+}
+.phone-stage:hover .phone {
+  box-shadow:
+    0 0 0 1.5px rgba(201, 162, 39, 0.6),
+    0 55px 100px -26px rgba(0, 0, 0, 0.78);
+}
+.feature {
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.feature:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px rgba(11, 61, 53, 0.12);
+}
+.btn {
+  transition: transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease;
+}
+.btn-gold:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(201, 162, 39, 0.35);
+}
+.checklist li {
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+.checklist li.reveal {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.checklist li.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+.checklist li:nth-child(2) { transition-delay: 0.08s; }
+.checklist li:nth-child(3) { transition-delay: 0.16s; }
+.checklist li:nth-child(4) { transition-delay: 0.24s; }
+
+/* ——— dark theme ——— */
+[data-theme='dark'] {
+  --cream: #0c1512;
+  --cream-dim: #0a1a14;
+  --paper: #132019;
+  --ink: #efe7d4;
+  --ink-soft: rgba(239, 231, 212, 0.72);
+  --night: #060d0a;
+  color-scheme: dark;
+}
+[data-theme='dark'] .feature {
+  border-color: rgba(239, 231, 212, 0.12);
+}
+[data-theme='dark'] .feature:hover {
+  border-color: var(--gold-line);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
+}
+[data-theme='dark'] .phone-notch {
+  box-shadow: inset 0 0 0 1px rgba(239, 231, 212, 0.12);
+}
+[data-theme='dark'] .btn-ghost-light {
+  border-color: rgba(245, 237, 218, 0.55);
+}
+[data-theme='dark'] .shot figcaption {
+  color: rgba(239, 231, 212, 0.65);
+}
+body {
+  color-scheme: light;
+}
+[data-theme='dark'] body,
+html[data-theme='dark'] body {
+  color-scheme: dark;
+}
+
+/* ——— always Naskh for brand mark + bismillah (Quran text) ——— */
+.nav-brand-mark,
+.bismillah {
+  font-family: 'Amiri', 'Times New Roman', serif;
+}
+
+/* ——— theme & language switch animation ——— */
+html.theme-anim *,
+html.theme-anim *::before,
+html.theme-anim *::after {
+  transition: background-color 0.45s ease, color 0.45s ease, border-color 0.45s ease,
+    fill 0.45s ease, stroke 0.45s ease, box-shadow 0.45s ease !important;
+}
+.theme-toggle svg {
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.3, 1.3);
+}
+.theme-toggle:hover svg {
+  transform: rotate(90deg);
+}
+html.lang-anim .nav-inner,
+html.lang-anim main,
+html.lang-anim .footer-inner {
+  animation: langSwap 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@keyframes langSwap {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
 }
