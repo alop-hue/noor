@@ -1,4 +1,4 @@
-# Noor — Quran & Prayer
+<img width="1879" height="813" alt="image" src="https://github.com/user-attachments/assets/53fcc105-31d5-4348-be56-e1d732499b8a" /># Noor — Quran & Prayer
 
 Offline-first Quran companion built with **Expo SDK 57** (React Native, expo-router, TypeScript). Works fully offline for scripture; audio streams or downloads on demand.
 
@@ -46,6 +46,10 @@ src/features/         tajweed colorizer
 scripts/build-data.mjs  regenerates assets/data/quran.db.gz from sources
 ```
 
+## Testing
+here https://noor-sable-seven.vercel.app/ on vercel 
+here https://alop-hue.github.io/noor/ on github pages
+here http://localhost:4173 locally (the port may be different) 
 ## Data sources
 
 Quran text & translations: Tanzil / quran-api. Tafsir: public JSON archives. Hadith: HadithsJSONFormat archive. Recitations: mp3quran.net. Adhan: archive.org. App code: MIT.
