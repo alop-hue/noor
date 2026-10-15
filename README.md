@@ -1,4 +1,4 @@
-<img width="1879" height="813" alt="image" src="https://github.com/user-attachments/assets/53fcc105-31d5-4348-be56-e1d732499b8a" /># Noor — Quran & Prayer
+# Noor — Quran & Prayer
 
 Offline-first Quran companion built with **Expo SDK 57** (React Native, expo-router, TypeScript). Works fully offline for scripture; audio streams or downloads on demand.
 
