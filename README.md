@@ -13,6 +13,14 @@ Offline-first Quran companion built with **Expo SDK 57** (React Native, expo-rou
 - **Tools** — Qibla compass, Tasbih counter, Dhikr lists, Hijri calendar + Islamic events, mosque finder (Overpass)
 - **i18n** — 7 languages: English, العربية, Türkçe, Bahasa Indonesia, اردو, Français, Deutsch (full RTL support)
 
+## Screenshots
+
+| | |
+|:---:|:---:|
+| ![المصحف — وضع نهاري](website/public/screenshots/mushaf-light.png) | ![المصحف — الوضع الليلي](website/public/screenshots/mushaf-dark.png) |
+| ![مواقيت الصلاة والتنبيهات](website/public/screenshots/prayer.png) | ![أسماء الله الحسنى](website/public/screenshots/names99.png) |
+| ![الأدوات: المسبحة والأذكار](website/public/screenshots/tools.png) | |
+
 ## Getting started
 
 ```bash
