@@ -351,7 +351,7 @@ const fr: Translation = {
     perPrayerSubtitle: 'Choisissez les prières à notifier',
     battery: 'Fonctionnement en arrière-plan',
     batteryHint: 'Excluez Noor de l’optimisation batterie pour recevoir les rappels avec l’app fermée',
-    batteryOemHint: 'Sur Xiaomi, Huawei et similaires, activez aussi le démarrage automatique dans les réglages système',
+    batteryOemHint: 'Sur les téléphones à gestion agressive de la batterie, activez aussi le démarrage automatique dans les réglages système',
     testDelayed: 'Test dans 10 secondes',
     testDelayedHint: 'Mettez l’app en arrière-plan — une notification doit arriver dans 10 secondes',
   },

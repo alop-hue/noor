@@ -351,7 +351,7 @@ const de: Translation = {
     perPrayerSubtitle: 'Wähle Gebete für Benachrichtigungen',
     battery: 'Ausführung im Hintergrund',
     batteryHint: 'Noor von der Akku-Optimierung ausnehmen, damit Erinnerungen auch mit geschlossener App ankommen',
-    batteryOemHint: 'Bei Xiaomi, Huawei & Co. zusätzlich Autostart in den Systemeinstellungen aktivieren',
+    batteryOemHint: 'Bei Geräten mit aggressivem Akku-Management zusätzlich Autostart in den Systemeinstellungen aktivieren',
     testDelayed: 'Test in 10 Sekunden',
     testDelayedHint: 'App in den Hintergrund legen — in 10 Sekunden sollte eine Benachrichtigung ankommen',
   },

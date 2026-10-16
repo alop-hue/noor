@@ -351,7 +351,7 @@ const id: Translation = {
     perPrayerSubtitle: 'Pilih shalat yang ingin diingatkan',
     battery: 'Berjalan di latar belakang',
     batteryHint: 'Keluarkan Noor dari optimasi baterai agar pengingat tetap sampai saat aplikasi ditutup',
-    batteryOemHint: 'Di Xiaomi, Huawei, dan sejenisnya, aktifkan juga Mulai otomatis di pengaturan sistem',
+    batteryOemHint: 'Di ponsel dengan pengelolaan baterai agresif, aktifkan juga Mulai otomatis di pengaturan sistem',
     testDelayed: 'Uji dalam 10 detik',
     testDelayedHint: 'Pindahkan aplikasi ke latar belakang — notifikasi harus tiba dalam 10 detik',
   },

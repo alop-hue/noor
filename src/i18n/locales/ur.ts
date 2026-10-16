@@ -351,7 +351,7 @@ const ur: Translation = {
     perPrayerSubtitle: 'منتخب کریں کن نمازوں کی اطلاع چاہیے',
     battery: 'پس منظر میں',
     batteryHint: 'یاددہانیں ایپ بند ہونے پر بھی موصول ہوں اس لیے نور کو بیٹری بہتر سازی سے مستثنیٰ کریں',
-    batteryOemHint: 'Xiaomi, Huawei وغیرہ پر سسٹم سیٹنگز میں Autostart بھی آن کریں',
+    batteryOemHint: 'شدید بیٹری منیجمنٹ والے فونز پر سسٹم سیٹنگز میں Autostart بھی آن کریں',
     testDelayed: '10 سیکنڈ بعد ٹیسٹ',
     testDelayedHint: 'ایپ کو پس منظر میں رکھیں — 10 سیکنڈ میں نوٹیفکیشن آنا چاہیے',
   },

@@ -349,7 +349,7 @@ const en = {
     perPrayerSubtitle: 'Choose which prayers notify you',
     battery: 'Background delivery',
     batteryHint: 'Exclude Noor from battery optimization so reminders arrive when the app is closed',
-    batteryOemHint: 'On Xiaomi, Huawei and similar phones also enable Autostart in system settings',
+    batteryOemHint: 'On phones with aggressive battery management also enable Autostart in system settings',
     testDelayed: 'Test after 10 seconds',
     testDelayedHint: 'Background the app first — a notification should arrive in 10 seconds',
   },

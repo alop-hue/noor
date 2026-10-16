@@ -351,7 +351,7 @@ const tr: Translation = {
     perPrayerSubtitle: 'Hangi namazların bildireceğini seç',
     battery: 'Arka planda çalıştırma',
     batteryHint: 'Hatırmaların uygulama kapalıyken de gelmesi için Noor’u pil iyileştirmesinden hariç tutun',
-    batteryOemHint: 'Xiaomi, Huawei vb. cihazlarda sistem ayarlarından Otomatik başlat’ı da etkinleştirin',
+    batteryOemHint: 'Güçlü pil yönetimine sahip cihazlarda sistem ayarlarından Otomatik başlat’ı da etkinleştirin',
     testDelayed: '10 saniye sonra test',
     testDelayedHint: 'Uygulamayı arka plana alın — 10 saniye içinde bildirim gelmeli',
   },
