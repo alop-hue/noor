@@ -12,12 +12,12 @@ export const canRequestExactAlarms = (): boolean =>
 
 export const ADHAN_SOUND_FILES: Record<Exclude<AdhanSound, 'silent' | 'custom'>, string> = {
   default: 'default',
-  makkah: 'default',
-  hejaz: 'default',
-  ajam: 'default',
-  fajr: 'default',
-  alafasy: 'default',
-  alafasy_hd: 'default',
+  makkah: 'athan_makkah.mp3',
+  hejaz: 'athan_hejaz.mp3',
+  ajam: 'athan_ajam.mp3',
+  fajr: 'athan_fajr.mp3',
+  alafasy: 'athan_alafasy_1431.mp3',
+  alafasy_hd: 'athan_alafasy_hd.mp3',
 };
 
 function soundFile(sound: AdhanSound): string | undefined {
@@ -177,18 +177,21 @@ export async function sendDelayedTestNotification(
   title: string,
   body: string,
   seconds: number,
+  sound: AdhanSound = 'makkah',
 ): Promise<string> {
   const date = new Date(Date.now() + Math.max(1, seconds) * 1000);
+  const channelId =
+    sound === 'silent' || sound === 'default' ? CHANNEL_PRAYER : `prayer-${sound}`;
   return Notifications.scheduleNotificationAsync({
     content: {
       title,
       body,
-      sound: 'default',
+      sound: soundFile(sound),
       priority: Notifications.AndroidNotificationPriority.MAX,
-      data: { type: 'test' },
+      data: { type: 'test', sound },
     },
     trigger: Platform.OS === 'android'
-      ? { ...buildDateTrigger(date), channelId: CHANNEL_PRAYER }
+      ? { ...buildDateTrigger(date), channelId }
       : buildDateTrigger(date),
   });
 }

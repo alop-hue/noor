@@ -83,8 +83,8 @@ export default function NotificationSettingsScreen() {
   };
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: colors.bg }} contentContainerStyle={{ paddingTop: insets.top + space[3], paddingBottom: insets.bottom + space[8] }} >
-      <View style={styles.header}>
+    <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
+      <View style={[styles.header, { backgroundColor: colors.bgElevated, borderBottomColor: colors.hairline }]}>
         <Pressable onPress={() => router.back()} hitSlop={8}>
           <Ionicons name="chevron-back" size={24} color={colors.text} />
         </Pressable>
@@ -92,7 +92,8 @@ export default function NotificationSettingsScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <Text variant="bodySmall" color="secondary" style={{ paddingHorizontal: space[4], marginTop: space[2] }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + space[8] }}>
+        <Text variant="bodySmall" color="secondary" style={{ paddingHorizontal: space[4], marginTop: space[2] }}>
         {t('notifications.subtitle')}
       </Text>
 
@@ -210,7 +211,8 @@ export default function NotificationSettingsScreen() {
           {t('notifications.testHint')}
         </Text>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
