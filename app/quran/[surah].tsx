@@ -21,6 +21,8 @@ import { MushafReader } from '@/components/quran/MushafReader';
 import { getAyahs, getSurah, getSurahTranslations, getTafsir, type AyahRow, type SurahRow, type TafsirRow, type TranslationRow, TAFSIR_BY_LANG, TAFSIR_SOURCES, TRANSLATION_EDITIONS } from '@/db/queries';
 import { getMemorizedSurah, getNote, isAyahBookmarked, isAyahMemorized, saveNote, toggleAyahBookmark, toggleAyahMemorized } from '@/db/userdb';
 import { colorizeWords, splitWords } from '@/features/quran/tajweed';
+import { locateAtMs, preloadTiming } from '@/features/quran/timing';
+import { getWbwWord, preloadWbw } from '@/features/quran/wbw';
 import { arabicSurahName, surahDisplayName } from '@/features/quran/surahNames';
 import { playAyah, playSurah, playWord, RECITERS, startMemorizeRange, stopMemorize, subscribeToPlayer, togglePlayPause, type PlayerStatus } from '@/services/audio';
 import { useSettings } from '@/store/settings';
@@ -69,6 +71,7 @@ export default function ReaderScreen() {
   const [focusAyah, setFocusAyah] = useState(targetAyah ?? 1);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [activeWord, setActiveWord] = useState<number | null>(null);
+  const [activeAyah, setActiveAyah] = useState<number | null>(null);
   const [testMode, setTestMode] = useState(false);
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
   const [reciterOpen, setReciterOpen] = useState(false);
@@ -233,29 +236,50 @@ export default function ReaderScreen() {
   const playingThis = player.surah === surahId && player.playing;
   const resumeFrom = lastRead && lastRead.surah === surahId ? lastRead.ayah : undefined;
   const startPlayback = () => playSurah(surahId, resumeFrom);
-  const activeAyah =
-    playingThis && player.startAyah
-      ? Math.min(
-          verses?.length ?? 1,
-          player.startAyah + Math.floor(Math.max(0, player.currentTime - Math.max(0, (player.startAyah - 2) * 25)) / 25),
-        )
-      : null;
 
   useEffect(() => {
-    if (!playingThis || activeAyah == null || !verses) {
+    void preloadTiming();
+    void preloadWbw();
+  }, []);
+
+  // Track the active ayah + word from real recitation timing (karaoke
+  // highlight). Falls back to a flat 25s/ayah estimate when timing isn't
+  // available (e.g. still loading).
+  useEffect(() => {
+    if (!playingThis || !verses) {
+      setActiveAyah(null);
       setActiveWord(null);
       return;
     }
-    const verse = verses.find((v) => v.ayah.ayah === activeAyah);
-    if (!verse) { setActiveWord(null); return; }
-    const words = splitWords(verse.ayah.arabic);
-    if (words.length === 0) { setActiveWord(null); return; }
-    const ayahStartTime = Math.max(0, (activeAyah - 2) * 25);
+    const loc = audio.reciterId === 'mishary_alafasy' ? locateAtMs(surahId, player.currentTime * 1000) : null;
+    if (loc) {
+      setActiveAyah(loc.ayah);
+      setActiveWord(Math.max(0, loc.word - 1));
+      return;
+    }
+    const ayah = player.startAyah
+      ? Math.min(
+          verses.length,
+          player.startAyah +
+            Math.floor(Math.max(0, player.currentTime - Math.max(0, (player.startAyah - 2) * 25)) / 25),
+        )
+      : null;
+    setActiveAyah(ayah);
+    if (ayah == null) {
+      setActiveWord(null);
+      return;
+    }
+    const verse = verses.find((v) => v.ayah.ayah === ayah);
+    const words = verse ? splitWords(verse.ayah.arabic) : [];
+    if (words.length === 0) {
+      setActiveWord(null);
+      return;
+    }
+    const ayahStartTime = Math.max(0, (ayah - 2) * 25);
     const elapsed = Math.max(0, player.currentTime - ayahStartTime);
     const progress = Math.min(1, elapsed / 25);
-    const wordIdx = Math.min(words.length - 1, Math.floor(progress * words.length));
-    setActiveWord(wordIdx);
-  }, [playingThis, activeAyah, player.currentTime, verses]);
+    setActiveWord(Math.min(words.length - 1, Math.floor(progress * words.length)));
+  }, [playingThis, player.currentTime, player.startAyah, surahId, verses, audio.reciterId]);
 
   if (!surah || !verses) {
     if (loadError) {
@@ -273,6 +297,8 @@ export default function ReaderScreen() {
   }
 
   const showBismillah = surahId !== 1 && surahId !== 9;
+  const isEnglish = i18n.language.startsWith('en');
+  const wbw = pron ? getWbwWord(surahId, pron.ayah, pron.word) : null;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -531,6 +557,16 @@ export default function ReaderScreen() {
                 )),
               )}
             </View>
+            {isEnglish && wbw?.translit ? (
+              <Text variant="bodySmall" color="secondary" style={{ textAlign: 'center', writingDirection: 'ltr' }}>
+                {wbw.translit}
+              </Text>
+            ) : null}
+            {isEnglish && wbw?.meaning ? (
+              <Text variant="bodySmall" color="primary" style={{ textAlign: 'center', writingDirection: 'ltr' }}>
+                {wbw.meaning}
+              </Text>
+            ) : null}
           </View>
         </Pressable>
       </Modal>

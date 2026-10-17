@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   FlatList,
   Pressable,
@@ -23,6 +23,9 @@ export interface MushafVerse {
   arabic: string;
   page: number;
   sajda?: number;
+  /** Present in page-mode (cross-surah); used for inline surah banners. */
+  surah?: number;
+  surahName?: string;
 }
 
 interface Props {
@@ -52,7 +55,6 @@ const PAGE_BG = '#0A1A14';
 const PAGE_TEXT = '#F5EDDA';
 const MARKER_COLOR = '#C9A227';
 const PAGE_FRAME = '#1A3D2E';
-const HEADER_GREEN = '#0B5E3E';
 
 interface Paper {
   bg: string;
@@ -314,6 +316,39 @@ export function MushafReader({
     );
   };
 
+  const renderSurahBanner = (key: string, name: string) => (
+    <View key={key} style={[styles.surahBanner, { borderColor: paper.frame }]}>
+      <View style={[styles.surahBannerInner, { borderColor: paper.frame }]}>
+        <RNText style={[styles.surahBannerText, { color: paper.text }]}>{name}</RNText>
+      </View>
+    </View>
+  );
+
+  const renderBismillah = (key: string) => (
+    <RNText key={key} style={[styles.bismillah, { color: paper.text }]}>
+      {'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ'}
+    </RNText>
+  );
+
+  // Render a page's verses, inserting a decorative surah banner (and the
+  // bismillah) exactly where a surah begins (ayah 1). Works for both
+  // surah-mode (banner on the surah's opening page only) and page-mode (a
+  // real page that may contain one or more surah openings).
+  const renderPageContent = (pageVerses: MushafVerse[]): ReactNode[] => {
+    const out: ReactNode[] = [];
+    pageVerses.forEach((v, idx) => {
+      if (v.ayah === 1) {
+        const s = v.surah ?? surahId;
+        out.push(renderSurahBanner(`sb${s}_${idx}`, v.surahName ?? surahName));
+        if (showBismillah && s !== 1 && s !== 9) {
+          out.push(renderBismillah(`bi${s}_${idx}`));
+        }
+      }
+      out.push(renderVerse(v));
+    });
+    return out;
+  };
+
   if (!pages || !pageW) {
     return (
       <View style={{ flex: 1 }} onLayout={onLayout}>
@@ -343,30 +378,21 @@ export function MushafReader({
         renderItem={({ item, index }) => (
           <View style={[styles.page, { width: pageW }]}>
             <View style={styles.pageFrame}>
-              <View style={[styles.pageFrameInner, { borderColor: paper.frame }]}>
-                <View style={[styles.surahHeader, { backgroundColor: HEADER_GREEN }]}>
-                  {index === 0 && showBismillah ? (
-                    <RNText style={styles.bismillah}>{'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ'}</RNText>
-                  ) : index === 0 ? (
-                    <RNText style={styles.surahName}>{surahName}</RNText>
-                  ) : null}
-                  {index !== 0 && (
-                    <View style={styles.headerOrnament}>
-                      <View style={[styles.ornamentLine, { backgroundColor: 'rgba(255,255,255,0.3)' }]} />
-                      <View style={[styles.ornamentDot, { backgroundColor: 'rgba(255,255,255,0.5)' }]} />
-                      <View style={[styles.ornamentLine, { backgroundColor: 'rgba(255,255,255,0.3)' }]} />
+              {/* Ornate double-line frame (classic mushaf page border) */}
+              <View style={[styles.frameOuter, { borderColor: paper.frame }]}>
+                <View style={[styles.frameInner, { borderColor: paper.frame }]}>
+                  <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    style={styles.pageBody}
+                    contentContainerStyle={{ paddingBottom: 24 }}
+                  >
+                    {renderPageContent(item.verses)}
+                  </ScrollView>
+                  <View style={[styles.pageFooter, { borderTopColor: paper.frame }]}>
+                    <View style={[styles.pageMedallion, { borderColor: paper.frame, backgroundColor: paper.markerBg }]}>
+                      <RNText style={[styles.pageNumber, { color: paper.marker }]}>{toArabicDigits(item.page)}</RNText>
                     </View>
-                  )}
-                </View>
-                <ScrollView
-                  showsVerticalScrollIndicator={false}
-                  style={styles.pageBody}
-                  contentContainerStyle={{ paddingBottom: 80 }}
-                >
-                  {item.verses.map(renderVerse)}
-                </ScrollView>
-                <View style={[styles.pageFooter, { borderTopColor: paper.frame }]}>
-                  <RNText style={[styles.pageNumber, { color: paper.muted }]}>{toArabicDigits(item.page)}</RNText>
+                  </View>
                 </View>
               </View>
             </View>
@@ -404,27 +430,44 @@ export function MushafReader({
 const styles = StyleSheet.create({
   page: { flex: 1 },
   pageFrame: { flex: 1, padding: 8 },
-  pageFrameInner: { flex: 1, borderWidth: 2, borderRadius: 4, overflow: 'hidden', borderColor: PAGE_FRAME },
-  surahHeader: {
-    height: 52,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.15)',
+  // Ornate double-line page frame (classic mushaf border).
+  frameOuter: { flex: 1, borderWidth: 3, borderRadius: 3, padding: 3 },
+  frameInner: { flex: 1, borderWidth: 1, borderRadius: 1, overflow: 'hidden' },
+  // Decorative surah banner box (classic header at the start of a surah).
+  surahBanner: {
+    borderWidth: 1.5,
+    borderRadius: 6,
+    padding: 2,
+    marginTop: 6,
+    marginBottom: 6,
+    marginHorizontal: 4,
+    alignSelf: 'stretch',
   },
-  headerOrnament: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  ornamentLine: { width: 40, height: 1 },
-  ornamentDot: { width: 5, height: 5, borderRadius: 3 },
-  bismillah: { fontSize: 26, lineHeight: 44, color: '#F5EDDA', fontFamily: 'Amiri_700Bold', textAlign: 'center' },
-  surahName: { fontSize: 24, lineHeight: 40, color: '#F5EDDA', fontFamily: 'Amiri_700Bold' },
-  pageBody: { flex: 1, paddingHorizontal: 12, paddingTop: 8 },
+  surahBannerInner: {
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+  },
+  surahBannerText: { fontSize: 22, lineHeight: 36, fontFamily: 'Amiri_700Bold', textAlign: 'center' },
+  bismillah: { fontSize: 24, lineHeight: 42, fontFamily: 'Amiri_700Bold', textAlign: 'center', marginBottom: 6 },
+  pageBody: { flex: 1, paddingHorizontal: 10, paddingTop: 4 },
   pageFooter: {
-    height: 36,
+    height: 38,
     justifyContent: 'center',
     alignItems: 'center',
     borderTopWidth: 1,
   },
-  pageNumber: { fontSize: 16, color: 'rgba(245,237,218,0.5)', fontFamily: 'Amiri_400Regular' },
+  pageMedallion: {
+    minWidth: 44,
+    paddingHorizontal: 12,
+    paddingVertical: 2,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  pageNumber: { fontSize: 15, fontFamily: 'Amiri_400Regular' },
   ayahSpan: {
     fontSize: FONT_SIZE,
     lineHeight: LINE_HEIGHT,

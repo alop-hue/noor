@@ -3,6 +3,7 @@ import { Directory, File, Paths } from 'expo-file-system';
 import * as LegacyFS from 'expo-file-system/legacy';
 
 import reciters from '../../assets/data/reciters.json';
+import { getAyahStartSeconds, preloadTiming } from '../features/quran/timing';
 import { useSettings } from '../store/settings';
 
 export interface Reciter {
@@ -186,13 +187,17 @@ async function playSurahMode(surah: number, fromAyah: number | undefined, mode: 
     p.replace({ uri: source });
     p.setPlaybackRate(rate);
     if (fromAyah && fromAyah > 1) {
-      // Seek by rough per-ayah duration, but NEVER past the end of the file:
-      // seeking beyond the end instantly finishes the track, which used to
-      // trigger an unwanted gapless jump to the next surah. If the duration
-      // is unknown, play from the start instead of risking an overshoot.
+      // Prefer the real per-ayah start time from recitation timing data so the
+      // seek lands exactly on the ayah. Wait for the (memoized) timing table;
+      // if it isn't available, fall back to a rough per-ayah duration. NEVER
+      // seek past the end of the file — seeking beyond the end instantly
+      // finishes the track, which used to trigger an unwanted gapless jump.
+      await preloadTiming();
       const dur = await waitForDuration(p);
+      const timed = reciterId === 'mishary_alafasy' ? getAyahStartSeconds(surah, fromAyah) : null;
+      const seekSec = timed ?? (fromAyah - 2) * 25;
       if (dur > 0) {
-        await p.seekTo(Math.min((fromAyah - 2) * 25, Math.max(0, dur - 2)));
+        await p.seekTo(Math.min(Math.max(0, seekSec), Math.max(0, dur - 2)));
       }
     }
     p.play();
