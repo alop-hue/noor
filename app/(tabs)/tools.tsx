@@ -26,10 +26,14 @@ export default function ToolsTab() {
   ] as const;
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: colors.bg }} contentContainerStyle={{ paddingTop: insets.top + space[5], paddingBottom: insets.bottom + space[8] }} >
-      <Text variant="title" font="uiBold" style={{ paddingHorizontal: space[4], marginBottom: space[4] }}>
-        {t('tools.title')}
-      </Text>
+    <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
+      <View style={{ backgroundColor: colors.bgElevated, borderBottomColor: colors.hairline, borderBottomWidth: StyleSheet.hairlineWidth * 2, paddingHorizontal: space[4], paddingVertical: space[3] }}>
+        <Text variant="title" font="uiBold">
+          {t('tools.title')}
+        </Text>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + space[8] }}>
       {tools.map((tool) => (
         <Pressable
           key={tool.route}
@@ -46,7 +50,8 @@ export default function ToolsTab() {
           <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
         </Pressable>
       ))}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 

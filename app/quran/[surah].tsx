@@ -4,6 +4,7 @@ import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
+  Modal,
   Pressable,
   ScrollView,
   Share,
@@ -73,6 +74,7 @@ export default function ReaderScreen() {
   const [reciterOpen, setReciterOpen] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const [pron, setPron] = useState<{ ayah: number; word: number; count: number; text: string } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -337,7 +339,7 @@ export default function ReaderScreen() {
             </Pressable>
           </View>
           {reciterOpen && (
-            <View style={{ maxHeight: 200, overflow: 'hidden' }}>
+            <ScrollView style={{ maxHeight: 220 }} nestedScrollEnabled>
               {RECITERS.map((r) => {
                 const activeRec = r.id === audio.reciterId;
                 return (
@@ -367,7 +369,7 @@ export default function ReaderScreen() {
                   </Pressable>
                 );
               })}
-            </View>
+            </ScrollView>
           )}
         </ScrollView>
       </ResizableSheet>
@@ -375,7 +377,7 @@ export default function ReaderScreen() {
       <MushafReader
         surahId={surahId}
         surahName={isArabic ? (arabicSurahName(surahId) || surah.name) : surah.name}
-        verses={verses.map((v) => ({ ayah: v.ayah.ayah, arabic: v.ayah.arabic, sajda: v.ayah.sajda }))}
+        verses={verses.map((v) => ({ ayah: v.ayah.ayah, arabic: v.ayah.arabic, page: v.ayah.page, sajda: v.ayah.sajda }))}
         showBismillah={showBismillah}
         activeAyah={activeAyah}
         focusAyah={memorizeMode ? focusAyah : targetAyah}
@@ -389,6 +391,10 @@ export default function ReaderScreen() {
           if (v) void openSheet(v);
         }}
         onPressWord={(ayah, word) => {
+          const v = verses.find((x) => x.ayah.ayah === ayah);
+          const words = v ? splitWords(v.ayah.arabic) : [];
+          const text = words[word - 1] ?? '';
+          if (text) setPron({ ayah, word, count: words.length, text });
           void playWord(surahId, ayah, word).then((ok) => {
             // If the word track is unavailable, play the ayah itself — but never
             // let this turn into full-surah playback that auto-advances.
@@ -504,6 +510,30 @@ export default function ReaderScreen() {
         t={t}
         colors={colors}
       />
+
+      <Modal visible={!!pron} transparent animationType="fade" onRequestClose={() => setPron(null)}>
+        <Pressable style={styles.pronBackdrop} onPress={() => setPron(null)}>
+          <View style={[styles.pronCard, { backgroundColor: colors.bgElevated, borderColor: colors.hairline }]}>
+            <Text variant="caption" color="tertiary">
+              {surahId}:{pron?.ayah} · {pron?.word}/{pron?.count}
+            </Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', direction: 'rtl' }}>
+              {colorizeWords(splitWords(pron?.text ?? '')).map((spans, i) =>
+                spans.map((span, j) => (
+                  <Text
+                    key={`${i}-${j}`}
+                    variant="quranWord"
+                    font="quranBold"
+                    style={span.color !== 'default' ? { color: colors.tajweed[TAJWEED_COLOR_KEY[span.color]] } : { color: colors.quranText }}
+                  >
+                    {span.text}
+                  </Text>
+                )),
+              )}
+            </View>
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -649,6 +679,8 @@ function stripHtml(html: string): string {
 }
 
 const styles = StyleSheet.create({
+  pronBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center', padding: space[5] },
+  pronCard: { borderRadius: radius.md, borderWidth: 1, paddingHorizontal: space[5], paddingVertical: space[4], alignItems: 'center', gap: space[2], maxWidth: '90%' },
   header: { borderBottomWidth: StyleSheet.hairlineWidth * 2 },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: space[2], paddingHorizontal: space[3], paddingVertical: space[2] },
   iconBtn: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },

@@ -47,14 +47,16 @@ export default function PrayerSettingsScreen() {
   };
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: colors.bg }} contentContainerStyle={{ paddingTop: insets.top + space[3], paddingBottom: insets.bottom + space[8] }} >
-      <View style={styles.header}>
+    <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
+      <View style={[styles.header, { backgroundColor: colors.bgElevated, borderBottomColor: colors.hairline }]}>
         <Pressable onPress={() => router.back()} hitSlop={8}>
           <Ionicons name="chevron-back" size={24} color={colors.text} />
         </Pressable>
         <Text variant="subheading" font="uiBold">{t('prayer.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: space[3], paddingBottom: insets.bottom + space[8] }}>
 
       <SectionLabel>{t('prayer.method')}</SectionLabel>
       <ListRow
@@ -128,7 +130,8 @@ export default function PrayerSettingsScreen() {
           </View>
         </>
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 

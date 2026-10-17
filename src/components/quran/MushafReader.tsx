@@ -9,8 +9,6 @@ import {
   Text as RNText,
   View,
   type LayoutChangeEvent,
-  type NativeSyntheticEvent,
-  type TextLayoutEventData,
   type ViewToken,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +21,7 @@ import { space } from '@/theme/tokens';
 export interface MushafVerse {
   ayah: number;
   arabic: string;
+  page: number;
   sajda?: number;
 }
 
@@ -49,7 +48,6 @@ interface Props {
 
 const FONT_SIZE = 36;
 const LINE_HEIGHT = 64;
-const H_PADDING = 16;
 const PAGE_BG = '#0A1A14';
 const PAGE_TEXT = '#F5EDDA';
 const MARKER_COLOR = '#C9A227';
@@ -134,55 +132,29 @@ export function MushafReader({
   const paper = mode === 'light' ? PAPER_LIGHT : mode === 'amoled' ? PAPER_AMOLED : PAPER_DARK;
   const { t, i18n } = useTranslation();
   const listRef = useRef<FlatList>(null);
-  const [areaH, setAreaH] = useState(0);
   const [pageW, setPageW] = useState(0);
-  const [avgCharW, setAvgCharW] = useState<number | null>(null);
   const [pageIndex, setPageIndex] = useState(0);
   const lastPageRef = useRef(-1);
   const rtl = i18n.dir() === 'rtl';
 
-  useEffect(() => {
-    const id = setTimeout(() => {
-      setAvgCharW((v) => (v === null ? 15 : v));
-    }, 1500);
-    return () => clearTimeout(id);
-  }, []);
-
-  const onProbeLayout = (e: NativeSyntheticEvent<TextLayoutEventData>) => {
-    const line = e.nativeEvent.lines[0];
-    if (line && avgCharW === null) setAvgCharW(line.width / 20);
-  };
-
   const onLayout = (e: LayoutChangeEvent) => {
-    const { width, height } = e.nativeEvent.layout;
-    setPageW(width);
-    setAreaH(height);
+    setPageW(e.nativeEvent.layout.width);
   };
 
+  // Group by the real 604-page mushaf number so app page N == Quran page N.
   const pages = useMemo(() => {
-    if (!avgCharW || !pageW || !areaH) return null;
-    const usableW = pageW - H_PADDING * 2;
-    const usableH = areaH - 60;
-    const linesPerPage = Math.max(1, Math.floor(usableH / LINE_HEIGHT));
-    const pages: { verses: MushafVerse[] }[] = [];
-    let cur: MushafVerse[] = [];
-    let curLines = 0;
-    const push = () => {
-      if (cur.length) {
-        pages.push({ verses: cur });
-        cur = [];
-        curLines = 0;
-      }
-    };
+    if (!verses.length) return [] as { page: number; verses: MushafVerse[] }[];
+    const byPage = new Map<number, MushafVerse[]>();
     for (const v of verses) {
-      const estLines = Math.max(1, Math.ceil((v.arabic.length * avgCharW) / usableW));
-      if (cur.length && curLines + estLines > linesPerPage) push();
-      cur.push(v);
-      curLines += estLines;
+      const p = v.page || 1;
+      const list = byPage.get(p);
+      if (list) list.push(v);
+      else byPage.set(p, [v]);
     }
-    push();
-    return pages;
-  }, [avgCharW, pageW, areaH, verses]);
+    return [...byPage.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([page, list]) => ({ page, verses: list }));
+  }, [verses]);
 
   const pagesRef = useRef(pages);
   pagesRef.current = pages;
@@ -274,23 +246,30 @@ export function MushafReader({
       const wordSpans = spans ?? words.map((w) => [{ text: w, color: 'default' as const }]);
       return (
         <RNText key={v.ayah} style={base} {...pressProps}>
-          {wordSpans.map((wordParts, i) => (
-            <RNText
-              key={`w${i}`}
-              style={[styles.wordTap, { color: paper.text, borderBottomColor: paper.underline }]}
-              onPress={() => onPressWord(v.ayah, i + 1)}
-            >
-              {wordParts.map((span, j) => (
-                <RNText
-                  key={j}
-                  style={{ color: span.color === 'default' ? paper.text : paper.tajweed[span.color] }}
-                >
-                  {span.text}
-                </RNText>
-              ))}
-              {' '}
-            </RNText>
-          ))}
+          {wordSpans.map((wordParts, i) => {
+            const isHighlighted = isWordActive && i === activeWord;
+            return (
+              <RNText
+                key={`w${i}`}
+                style={[styles.wordTap, { color: paper.text, borderBottomColor: paper.underline }]}
+                onPress={() => onPressWord(v.ayah, i + 1)}
+              >
+                {wordParts.map((span, j) => (
+                  <RNText
+                    key={j}
+                    style={{
+                      color: span.color === 'default' ? paper.text : paper.tajweed[span.color],
+                      backgroundColor: isHighlighted ? 'rgba(201,162,39,0.4)' : 'transparent',
+                      borderRadius: 3,
+                    }}
+                  >
+                    {span.text}
+                  </RNText>
+                ))}
+                {' '}
+              </RNText>
+            );
+          })}
           {v.sajda === 1 ? <RNText style={{ color: paper.sajda }}> ۩ </RNText> : null}
           <RNText style={[styles.inlineMarkerCircle, { color: paper.marker, borderColor: paper.marker, backgroundColor: paper.markerBg }]} onPress={() => onPressAyah(v.ayah)}>
             {verseMarkerInline}
@@ -335,17 +314,10 @@ export function MushafReader({
     );
   };
 
-  if (!pages || avgCharW === null) {
+  if (!pages || !pageW) {
     return (
       <View style={{ flex: 1 }} onLayout={onLayout}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <RNText
-            style={styles.probe}
-            onTextLayout={onProbeLayout}
-            numberOfLines={1}
-          >
-            {'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'}
-          </RNText>
           <Text variant="caption" color="tertiary">…</Text>
         </View>
       </View>
@@ -394,7 +366,7 @@ export function MushafReader({
                   {item.verses.map(renderVerse)}
                 </ScrollView>
                 <View style={[styles.pageFooter, { borderTopColor: paper.frame }]}>
-                  <RNText style={[styles.pageNumber, { color: paper.muted }]}>{toArabicDigits(pageIndex + 1)}</RNText>
+                  <RNText style={[styles.pageNumber, { color: paper.muted }]}>{toArabicDigits(item.page)}</RNText>
                 </View>
               </View>
             </View>
@@ -419,7 +391,7 @@ export function MushafReader({
           <Ionicons name={rtl ? 'chevron-forward' : 'chevron-back'} size={20} color={paper.muted} />
         </Pressable>
         <Text variant="caption" font="uiBold" style={{ color: paper.muted }}>
-          {toArabicDigits(pageIndex + 1)} / {toArabicDigits(pages.length)}
+          {toArabicDigits(pages[pageIndex]?.page ?? pages[0]?.page ?? 1)} / {toArabicDigits(pages[pages.length - 1]?.page ?? 1)}
         </Text>
         <Pressable onPress={() => scrollToPage(pageIndex + 1)} hitSlop={10} style={styles.footerBtn} accessibilityLabel={t('quran.nextPage')}>
           <Ionicons name={rtl ? 'chevron-back' : 'chevron-forward'} size={20} color={paper.muted} />
@@ -430,7 +402,6 @@ export function MushafReader({
 }
 
 const styles = StyleSheet.create({
-  probe: { position: 'absolute', opacity: 0, fontSize: FONT_SIZE, lineHeight: LINE_HEIGHT, fontFamily: 'Amiri_700Bold' },
   page: { flex: 1 },
   pageFrame: { flex: 1, padding: 8 },
   pageFrameInner: { flex: 1, borderWidth: 2, borderRadius: 4, overflow: 'hidden', borderColor: PAGE_FRAME },

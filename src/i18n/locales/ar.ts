@@ -427,7 +427,7 @@ const ar: Translation = {
     subject: 'الموضوع',
     subjectPlaceholder: 'عن ماذا تريد أن تكتب؟',
     message: 'الرسالة',
-    messagePlaceholder: 'أخبرنا برأبك، أو أبلغ عن خلل، أو اقترح ميزة…',
+    messagePlaceholder: 'أخبرنا برأيك، أو أبلغ عن خلل، أو اقترح ميزة…',
     send: 'إرسال الملاحظات',
     messageRequired: 'الرجاء إدخال رسالة',
     defaultSubject: 'ملاحظات تطبيق نور',

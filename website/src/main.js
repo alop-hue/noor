@@ -136,6 +136,25 @@ if (sections.length) {
   sections.forEach((s) => spy.observe(s));
 }
 
+/* ——— mobile menu ——— */
+const navBurger = document.getElementById('navBurger');
+const navMenu = document.getElementById('navLinks');
+if (navBurger && nav && navMenu) {
+  const setMenu = (open) => {
+    nav.classList.toggle('nav-open', open);
+    navBurger.setAttribute('aria-expanded', String(open));
+  };
+  navBurger.addEventListener('click', () => {
+    setMenu(!nav.classList.contains('nav-open'));
+  });
+  navMenu.addEventListener('click', (e) => {
+    if (e.target.closest('a')) setMenu(false);
+  });
+  document.addEventListener('click', (e) => {
+    if (!nav.contains(e.target)) setMenu(false);
+  });
+}
+
 /* ——— 3D device: hover tilt + scroll-driven rotation ——— */
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 

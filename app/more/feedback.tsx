@@ -43,12 +43,8 @@ export default function FeedbackScreen() {
   };
 
   return (
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      style={{ backgroundColor: colors.bg }}
-      contentContainerStyle={{ paddingTop: insets.top + space[5], paddingBottom: insets.bottom + space[8] }}
-    >
-      <View style={styles.header}>
+    <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
+      <View style={[styles.header, { backgroundColor: colors.bgElevated, borderBottomColor: colors.hairline, borderBottomWidth: StyleSheet.hairlineWidth * 2 }]}>
         <Pressable onPress={() => router.back()} hitSlop={8}>
           <Ionicons name="chevron-back" size={24} color={colors.text} />
         </Pressable>
@@ -57,6 +53,11 @@ export default function FeedbackScreen() {
         </Text>
         <View style={{ width: 24 }} />
       </View>
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: space[3], paddingBottom: insets.bottom + space[8] }}
+      >
 
       <View style={styles.hero}>
         <View style={[styles.iconCircle, { backgroundColor: colors.primarySoft }]}>
@@ -105,7 +106,8 @@ export default function FeedbackScreen() {
         <Ionicons name="mail-outline" size={16} color={colors.textTertiary} />
         <Text variant="micro" color="tertiary">{FEEDBACK_EMAIL}</Text>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 

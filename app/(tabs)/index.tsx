@@ -78,11 +78,8 @@ export default function HomeScreen() {
   ] as const;
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false}
-      style={{ backgroundColor: colors.bg }}
-      contentContainerStyle={{ paddingTop: insets.top + space[5], paddingBottom: insets.bottom + space[8] }}
-     >
-      <View style={styles.header}>
+    <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
+      <View style={[styles.header, { backgroundColor: colors.bgElevated, borderBottomColor: colors.hairline, borderBottomWidth: StyleSheet.hairlineWidth * 2, paddingTop: space[3] }]}>
         <View>
           <Text variant="caption" color="secondary" font="uiBold" style={{ letterSpacing: 1, textTransform: 'uppercase' }}>
             {greeting}
@@ -97,6 +94,8 @@ export default function HomeScreen() {
           </Text>
         </View>
       </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + space[8] }}>
 
       {coords && result.next && (
         <Surface style={styles.nextPrayer}>
@@ -217,7 +216,8 @@ export default function HomeScreen() {
       </Surface>
 
       <View style={{ height: space[2] }} />
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 

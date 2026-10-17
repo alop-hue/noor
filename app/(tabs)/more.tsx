@@ -15,10 +15,14 @@ export default function MoreTab() {
   const insets = useSafeAreaInsets();
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: colors.bg }} contentContainerStyle={{ paddingTop: insets.top + space[5], paddingBottom: insets.bottom + space[8] }} >
-      <Text variant="title" font="uiBold" style={{ paddingHorizontal: space[4], marginBottom: space[3] }}>
-        {t('tabs.more')}
-      </Text>
+    <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
+      <View style={{ backgroundColor: colors.bgElevated, borderBottomColor: colors.hairline, borderBottomWidth: StyleSheet.hairlineWidth * 2, paddingHorizontal: space[4], paddingVertical: space[3] }}>
+        <Text variant="title" font="uiBold">
+          {t('tabs.more')}
+        </Text>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + space[8] }}>
 
       <SectionLabel>{t('settings.title')}</SectionLabel>
       <ListRow
@@ -96,7 +100,8 @@ export default function MoreTab() {
           v1.0.0
         </Text>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
