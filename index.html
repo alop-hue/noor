@@ -20,8 +20,8 @@
       href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@600;700&family=Noto+Nastaliq+Urdu:wght@400;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <script type="module" crossorigin src="./assets/index-BhZgEBsV.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-B-jtkb5G.css">
+    <script type="module" crossorigin src="./assets/index-lNFULBlK.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BNJLbtCW.css">
   </head>
   <body>
     <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
@@ -32,7 +32,7 @@
           <span class="nav-brand-mark">نور</span>
           <span class="nav-brand-latin">Noor Quran</span>
         </a>
-        <nav class="nav-links" aria-label="أقسام الصفحة">
+        <nav class="nav-links" id="navLinks" aria-label="أقسام الصفحة">
           <a href="#features" data-i18n="nav.features">المزايا</a>
           <a href="#shots" data-i18n="nav.shots">اللقطات</a>
           <a href="#alerts" data-i18n="nav.alerts">التنبيهات</a>
@@ -71,6 +71,9 @@
             </svg>
           </a>
         </div>
+        <button id="navBurger" class="nav-burger" type="button" aria-label="القائمة" aria-expanded="false" aria-controls="navLinks">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
       </div>
     </header>
 
